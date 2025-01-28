@@ -3,13 +3,13 @@ import { createContext, useContext, useState } from "react";
 const UserContext = createContext();
 
 function UserProvider({ children }) {
-  const [user, updateUser] = useState(null);
+  const [user, setUser] = useState(null);
 
   return (
     <UserContext.Provider
       value={{
         user,
-        updateUser,
+        setUser,
       }}
     >{children}</UserContext.Provider>
   );

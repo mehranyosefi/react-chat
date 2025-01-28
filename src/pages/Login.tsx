@@ -1,6 +1,8 @@
 import { FormEvent } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
+import BaseButton from "../components/base/BaseButton";
+import BaseInput from "../components/base/BaseInput";
 import { setUser } from "../features/user/userSlice";
 import { supabase } from "../services/supbase";
 
@@ -11,13 +13,11 @@ function Login() {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
         const { email, password } = Object.fromEntries(formData);
-
         try {
             const { data } = await supabase.auth.signUp({
                 email: email as string,
                 password: password as string,
             })
-
             if (data) {
                 const { data: loginData } = await supabase.auth.signInWithPassword({
                     email: email as string,
@@ -38,23 +38,16 @@ function Login() {
         } catch (e) {
             console.log(e)
         }
+
     }
     return (
         <div className="flex items-center justify-center h-screen">
-            <div className="rounded-xl p-10 bg-gray-900/80">
+            <div className="rounded-xl p-10 bg-gray-900/90">
                 <h1 className="font-semibold  text-xl">Your welcome</h1>
-                <form onSubmit={formSubmit} className="pt-4 mt-5">
-                    <div>
-                        <label>email:</label>
-                        <input className="ml-2 p-2 outline outline-gray-400 rounded-xl placeholder:text-xs" type="email" name="email" placeholder="email" />
-                    </div>
-                    <div className="mt-5">
-                        <label>password:</label>
-                        <input className="ml-2 mt-2 p-2 outline outline-gray-400 rounded-xl placeholder:text-xs" type="password" name="password" placeholder="password" />
-                    </div>
-                    <div className="text-center mt-10 ">
-                        <button type="submit" className="bg-gray-700 py-2 px-12 rounded-xl cursor-pointer hover:bg-gray-900/80 transition-colors duration-300">signIn</button>
-                    </div>
+                <form onSubmit={formSubmit} className="pt-4 mt-5 flex flex-col gap-y-7">
+                    <BaseInput label="email" name="email" className="w-full flex items-center gap-x-3" type="email" required></BaseInput>
+                    <BaseInput label="password" name="password" className="w-full flex items-center gap-x-3" required></BaseInput>
+                    <BaseButton type="submit" className="btn__outline w-full">SignIn</BaseButton>
                 </form>
             </div>
         </div>

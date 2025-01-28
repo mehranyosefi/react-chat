@@ -28,7 +28,10 @@
   }
   body {
     background-image: url("/—Pngtree—3d rendered envelopes featuring chat_7228140.jpg");
-    @apply bg-no-repeat h-screen bg-cover text-white;
+    @apply bg-no-repeat h-screen bg-cover text-white overflow-hidden;
+  }
+  #portals {
+    @apply absolute w-full h-0 inset-0;
   }
 }
 @layer components {
@@ -36,6 +39,9 @@
     @apply bg-gray-900/80 size-14 
     rounded-full cursor-pointer text-purple-400 hover:text-white hover:bg-purple-500 transition-colors duration-300
      disabled:opacity-70 disabled:hover:bg-gray-900/80 disabled:text-purple-500 disabled:cursor-auto;
+  }
+  .btn__outline {
+    @apply !bg-transparent outline outline-gray-400 hover:!bg-purple-500;
   }
 }
 

@@ -1,6 +1,13 @@
+import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router";
 
 function LeftSideBar() {
+    const [showChatAddMenu, setShowChatAddMenu] = useState<boolean>(false)
+    function handleAddItem() {
+        setShowChatAddMenu(!showChatAddMenu)
+    }
+
     return (
         <div className="relative h-full">
             <div className="bg-gray-900/80 shadow-md">
@@ -17,7 +24,7 @@ function LeftSideBar() {
                     </div>
                 </div>
             </div>
-            <div className="max-h-[calc(100vh-76px)] overflow-y-auto pl-2">
+            <div className="max-h-[calc(100vh-76px)] overflow-y-auto">
                 <ul>
                     <li>
                         <Item />
@@ -25,9 +32,16 @@ function LeftSideBar() {
 
                 </ul>
             </div>
-            <button className="btn__action absolute right-5 bottom-5 pb-1">
-                <span className="text-3xl font-bold">+</span>
+            <button className="btn__action absolute right-5 bottom-5 flex items-center justify-center shadow" onClick={handleAddItem}
+            >
+                <svg className="size-5">
+                    <use className="size-5" href="/img/icons.svg#user-add"></use>
+                </svg>
             </button>
+            {showChatAddMenu && createPortal(
+                <ChatAddMenu handleCloseModal={handleAddItem} />,
+                document.getElementById("portals")!
+            )}
         </div>
     );
 }
@@ -50,5 +64,34 @@ function Item() {
                 <p className="text-sm truncate max-w-60 overflow-hidden">Lorem ipsum dolor sit amet sfesefgfegdddsss</p>
             </div>
         </Link>
+    )
+}
+
+function ChatAddMenu(props: { handleCloseModal: () => void }) {
+    const { handleCloseModal } = props
+    return (
+        <div className="modal">
+            <div className="modal__container h-screen w-full flex items-center justify-center">
+                <div className="w-[25rem] rounded-xl bg-gray-900/80 p-5">
+                    <div className="modal__header">
+                        <span className="text-xl">New Contact</span>
+                    </div>
+                    <div className="modal__body flex flex-col gap-y-5 mt-5">
+                        <div className="flex gap-x-2">
+                            <label>name:</label>
+                            <input className="ml-2 p-2 outline outline-gray-400 rounded-xl placeholder:text-xs" type="text" name="name" placeholder="name" />
+                        </div>
+                        <div className="flex gap-x-2">
+                            <label>username:</label>
+                            <input className="ml-2 p-2 outline outline-gray-400 rounded-xl placeholder:text-xs" type="text" name="username" placeholder="username" />
+                        </div>
+                    </div>
+                    <div className="modal__footer flex gap-x-5 mt-5">
+                        <button className="cursor-pointer">DONE</button>
+                        <button className="cursor-pointer" onClick={handleCloseModal}>CANCEL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     )
 }

@@ -31,7 +31,6 @@ function AppLayout() {
     return (
         <div className="app w-screen h-screen overflow-hidden backdrop-blur-sm bg-black/50">
             <div className="2xl:container mx-auto">
-                {isLoading && <span>...loading</span>}
                 <div className="flex h-screen">
                     <div className="w-96 h-full border-r border-gray-500">
                         <LeftSideBar />
@@ -51,7 +50,6 @@ function AppLayout() {
 }
 export async function loader() {
     const { data, error } = await supabase.auth.getUser()
-    console.log(error)
     if (!error) return data
     throw Error(error.message)
 }
