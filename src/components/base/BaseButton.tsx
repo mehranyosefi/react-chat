@@ -5,11 +5,12 @@ function BaseButton(props: BaseButtonProps) {
     const { type = 'button', bg = 'bg-gray-800/90', isLoading = false, emitOnClik, to, prepend, append, children, className = '' } = props;
 
     function handleClik() {
-        if (to) redirect(to)
+        if (isLoading) return
+        else if (to) redirect(to)
         else emitOnClik?.()
     }
     return (
-        <button className={`btn py-2 px-12 rounded-xl cursor-pointer transition-colors duration-300 hover:bg-gray-900/80
+        <button className={`btn py-2 px-12 rounded-xl cursor-pointer transition-colors duration-300 hover:bg-gray-700/80 text-sm
             ${bg} ${className}
             `}
             type={type}
@@ -17,16 +18,20 @@ function BaseButton(props: BaseButtonProps) {
             disabled={isLoading}
         >
             {
-                isLoading ? <div className="loader"></div>
+                isLoading ? <div className="loader">Loading...</div>
                     : <>
                         {prepend && prepend}
                         {children}
                         {append && append}
                     </>
             }
-
         </button>
     );
 }
 
 export default BaseButton;
+
+
+/* example for use
+<BaseButton emitOnClik={handleLogOut}>logLout</BaseButton>
+*/

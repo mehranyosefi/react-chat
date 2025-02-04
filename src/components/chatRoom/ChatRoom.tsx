@@ -1,14 +1,55 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router";
+import { supabase } from "../../services/supbase";
+import { MessageType } from "../../types/components";
+import TextInputModel from "./TextInputModel";
 
 function ChatRoom() {
-    const [messages, updateMessages] = useState<Array<string>>([]);
-    const { email } = useSelector((store) => store.user)
-    function handleSendMessage(val: string) {
-        updateMessages([
-            ...messages,
-            val
+    const [chatInfo, setChatInfo] = useState()
+    const [messages, updateMessages] = useState<Array<MessageType>>([]);
+    const { username } = useParams()
+    // const { email } = useSelector((store) => store.user)
+
+    useEffect(() => {
+        Promise.all([
+            fetchChat(),
+            fetchMessages()
         ])
+        const messageListener = supabase
+            .channel(username!.toString())
+            .on(
+                "postgres_changes",
+                { event: "INSERT", schema: "public", table: "message" },
+                (payload) => {
+                    console.log("Change received!", payload);
+                }
+            )
+            .subscribe();
+
+        return () => messageListener.unsubscribe();
+    }, [username])
+
+    async function fetchChat() {
+        const { data, error } = await supabase
+            .from('chat')
+            .select()
+            .eq('username', username).limit(1)
+            .single()
+        if (!error && data) setChatInfo(data)
+    }
+    async function fetchMessages() {
+        const { data: messageData, error: errorData } = await supabase
+            .from('message')
+            .select()
+            .eq('chat_username', username)
+        console.log(messageData)
+        updateMessages(messageData)
+    }
+    async function handleSendMessage(val: string) {
+        const { data, error } = await supabase
+            .from('message')
+            .insert({ content: val, chat_username: username })
+
     }
     return (
         <div className="flex flex-col justify-between h-full">
@@ -16,7 +57,7 @@ function ChatRoom() {
                 <div className="flex gap-x-4">
                     <img className="size-12 rounded-full" src="" alt="" />
                     <div className="flex flex-col gap-y-2">
-                        <span>نام</span>
+                        <span>{chatInfo?.name}</span>
                         <span className="text-xs">state</span>
                     </div>
                 </div>
@@ -33,7 +74,9 @@ function ChatRoom() {
                 </div>
             </div>
             <div className="grow">
-                {messages}
+                {messages && messages.map((message) => {
+                    return <div key={message.id}>{message.content}</div>
+                })}
             </div>
             <div className="mx-auto">
                 <TextInputModel classes="w-[30rem]" emitValue={handleSendMessage}></TextInputModel>
@@ -43,34 +86,3 @@ function ChatRoom() {
 }
 
 export default ChatRoom;
-
-
-
-function TextInputModel(props: { emitValue: (val: string) => void, classes?: string, }) {
-    const { emitValue, classes = '' } = props;
-    const [model, updateModel] = useState<string>('');
-
-    function sendMessage(): void {
-        if (!model) return
-        emitValue(model)
-    }
-
-    return (
-        <div className="flex items-center gap-x-2 mb-7">
-            <div className={`rounded-3xl rounded-br-none px-4 py-0 flex items-center bg-gray-900/80 ${classes}`}>
-                <svg className="size-6 cursor-pointer text-gray-300 hover:text-purple-500 transition duration-300"><use className="size-6" href="/img/icons.svg#iconoir-emoji"></use></svg>
-                <input type="text" onInput={(e) => updateModel((e.target as HTMLInputElement).value)} className="grow border-none outline-none py-2 m-2 pl-2" placeholder="Message" />
-                <svg className="size-6 cursor-pointer text-gray-300 hover:text-purple-500 transition duration-300"><use className="size-6" href="/img/icons.svg#attachment-light"></use></svg>
-
-            </div>
-            <button disabled={model ? false : true}
-                onClick={sendMessage}
-                type="button" className="btn__action">
-                <svg className="size-7 ml-4">
-                    <use className="size-7" href="/img/icons.svg#fluent-send"></use>
-                </svg>
-            </button>
-
-        </div>
-    )
-}

@@ -1,21 +1,69 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { useOutsideClick } from "../../features/hooks/useOutsideClick";
+import { supabase } from "../../services/supbase";
+import BaseButton from "../base/BaseButton";
+import ChatAddMenu from "./ChatAddMenu";
+import ChatItem from "./ChatItem";
 
 function LeftSideBar() {
-    const [showChatAddMenu, setShowChatAddMenu] = useState<boolean>(false)
+    const navigate = useNavigate()
+    const [showChatAddMenu, setShowChatAddMenu] = useState<boolean>(false);
+    const [showOptionMenu, setShowOptionMenu] = useState<boolean>(false);
+    const [chats, setChats] = useState([])
+    const { session } = useSelector(store => store.user);
+    const optionMenuRef = useRef<null>(null)
     function handleAddItem() {
         setShowChatAddMenu(!showChatAddMenu)
+    }
+    useEffect(() => {
+
+        getChats()
+        return () => {
+            // this now gets called when the component unmounts
+        };
+
+    }, [])
+    async function getChats() {
+        const { data, error } = await supabase
+            .from('chat')
+            .select().eq('user_token', session.access_token)
+        if (!error && data) setChats(data)
+    }
+
+    useOutsideClick(optionMenuRef, () => setShowOptionMenu(false))
+    async function handleLogOut() {
+        const { error } = await supabase.auth.signOut()
+        if (!error) {
+            localStorage.removeItem('access_token')
+            localStorage.removeItem('refresh_token')
+            navigate('/login')
+        }
     }
 
     return (
         <div className="relative h-full">
-            <div className="bg-gray-900/80 shadow-md">
+            <div className="bg-gray-900/80 shadow-md relative">
                 <div className="flex items-center p-3 gap-x-4">
-                    <svg className="size-10 cursor-pointer text-gray-300 transition-colors duration-300 hover:text-gray-100">
-                        <use className="size-10" href="/img/icons.svg#menu"></use>
-                    </svg>
+                    <div ref={optionMenuRef}>
+                        <svg onClick={() => setShowOptionMenu(!showOptionMenu)}
+                            className="size-10 cursor-pointer text-gray-300 transition-colors duration-300 hover:text-gray-100">
+                            <use className="size-10" href="/img/icons.svg#menu"></use>
+                        </svg>
+                        {
+                            showOptionMenu &&
+                            <div className="menu-option absolute left-10 top-14 rounded-xl bg-gray-900 p-5">
+                                <ul className="list-none">
+                                    <li>
+                                        <BaseButton emitOnClik={handleLogOut}>logLout</BaseButton>
+                                    </li>
+                                </ul>
+                            </div>
 
+                        }
+                    </div>
                     <div className="flex items-center w-full bg-gray-800 rounded-[25px] ">
                         <svg className="size-7 ml-3">
                             <use className="size-7" href="/img/icons.svg#search-rounded"></use>
@@ -26,9 +74,11 @@ function LeftSideBar() {
             </div>
             <div className="max-h-[calc(100vh-76px)] overflow-y-auto">
                 <ul>
-                    <li>
-                        <Item />
-                    </li>
+                    {chats && chats.map((chat) => {
+                        return <li key={chat.username}>
+                            <ChatItem name={chat.name} username={chat.username} created_at={chat.created_at} />
+                        </li>
+                    })}
 
                 </ul>
             </div>
@@ -39,59 +89,14 @@ function LeftSideBar() {
                 </svg>
             </button>
             {showChatAddMenu && createPortal(
-                <ChatAddMenu handleCloseModal={handleAddItem} />,
+                <ChatAddMenu handleCloseModal={handleAddItem} handleRefreshItems={getChats} />,
                 document.getElementById("portals")!
             )}
         </div>
     );
 }
 
+
+
+
 export default LeftSideBar;
-
-function Item() {
-    return (
-        <Link to="/" className="flex transition-colors 50 hover:bg-gray-600/40 gap-3 rounded-md p-2">
-            <div className="size-16 bg-gray-800 rounded-full flex items-center justify-center">
-                <svg className="size-10">
-                    <use className="size-810" href="/img/icons.svg#avatar-line"></use>
-                </svg>
-            </div>
-            <div className="flex flex-col gap-y-3 flex-nowrap grow">
-                <div className="flex justify-between items-center grow">
-                    <span className="font-bold">username</span>
-                    <span className="text-xs pr-2">19:42</span>
-                </div>
-                <p className="text-sm truncate max-w-60 overflow-hidden">Lorem ipsum dolor sit amet sfesefgfegdddsss</p>
-            </div>
-        </Link>
-    )
-}
-
-function ChatAddMenu(props: { handleCloseModal: () => void }) {
-    const { handleCloseModal } = props
-    return (
-        <div className="modal">
-            <div className="modal__container h-screen w-full flex items-center justify-center">
-                <div className="w-[25rem] rounded-xl bg-gray-900/80 p-5">
-                    <div className="modal__header">
-                        <span className="text-xl">New Contact</span>
-                    </div>
-                    <div className="modal__body flex flex-col gap-y-5 mt-5">
-                        <div className="flex gap-x-2">
-                            <label>name:</label>
-                            <input className="ml-2 p-2 outline outline-gray-400 rounded-xl placeholder:text-xs" type="text" name="name" placeholder="name" />
-                        </div>
-                        <div className="flex gap-x-2">
-                            <label>username:</label>
-                            <input className="ml-2 p-2 outline outline-gray-400 rounded-xl placeholder:text-xs" type="text" name="username" placeholder="username" />
-                        </div>
-                    </div>
-                    <div className="modal__footer flex gap-x-5 mt-5">
-                        <button className="cursor-pointer">DONE</button>
-                        <button className="cursor-pointer" onClick={handleCloseModal}>CANCEL</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}

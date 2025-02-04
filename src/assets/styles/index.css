@@ -43,7 +43,24 @@
   .btn__outline {
     @apply !bg-transparent outline outline-gray-400 hover:!bg-purple-500;
   }
+  .transition-fade {
+    animation: fade 0.2s;
+    animation-fill-mode: both;
+  }
+  .text-input-model__input {
+    @apply grow px-2;
+    .input__scaffold {
+      @apply border-none outline-none;
+      input {
+        @apply !py-4;
+      }
+    }
+  }
 }
+
+/* @utility content-auto {
+  content-visibility: auto;
+} */
 
 /* add custome variant
 @variant dark {
@@ -52,7 +69,16 @@
   }
 } */
 
-/* //simple utilities
-@utility content-auto {
-  content-visibility: auto;
-} */
+/*---------------------------------------------------------
+----------------keyframse and mediaQueries-----------------
+----------------------------------------------------------*/
+
+@keyframes fade {
+  from {
+    transition: all;
+    opacity: 0;
+  }
+  to {
+    opacity: 100;
+  }
+}

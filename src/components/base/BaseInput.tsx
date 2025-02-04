@@ -63,7 +63,6 @@ function BaseInput(props: BaseInputProps) {
 export default BaseInput;
 
 /* example for use
-
 //for radio input
 <BaseInput model={model} updateModel={(val: string) => triggerUpdateModel(val)} type="radio" label="name" value="name" />
 
@@ -72,5 +71,4 @@ export default BaseInput;
 
 //and for etc..
 <BaseInput model={model} updateModel={(val: string) => triggerUpdateModel(val)} type="password" label="password" />
-
 */

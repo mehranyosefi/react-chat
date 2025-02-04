@@ -27,3 +27,20 @@ export interface BaseButtonProps
   className?: string;
   emitOnClik?: () => void;
 }
+
+export interface CahtItemProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  name: string;
+  username: string;
+  created_at: string;
+  children?: ReactNode;
+  className?: string;
+}
+
+export interface MessageType {
+  id: string | number;
+  chat_username: string;
+  content: string;
+  created_at: string;
+  updated_at: string | null;
+}

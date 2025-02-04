@@ -19,7 +19,7 @@ const router = createBrowserRouter([
         errorElement: <Error />,
       },
       {
-        path: "/:id",
+        path: "/:username",
         element: <Index />,
       },
     ],
