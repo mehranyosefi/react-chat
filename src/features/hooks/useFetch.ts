@@ -20,18 +20,26 @@ type FetchError = {
   message: string;
 };
 
+type FetchResult<T> = {
+  data: T | null;
+  error: FetchError | Error | null;
+};
+
 type UseFetchReturn<T> = {
   data: T | null;
   loading: boolean;
   error: FetchError | Error | null;
-  fetchData: () => Promise<void>;
+
+  fetchData: (
+    config?: FetchConfig
+  ) => Promise<FetchResult<T>>;
 };
 
 /* -------------------------------------------------------------------------- */
 /* API URL                                                                     */
 /* -------------------------------------------------------------------------- */
 
-const baseUrl = `${import.meta.env.VITE_BASE_URL}/${import.meta.env.VITE_APP_VERSION}/api`;
+const baseUrl = `${import.meta.env.VITE_BASE_URL}/api/${import.meta.env.VITE_APP_VERSION}`;
 
 const makeApiUrl = (url: string) => {
   return `${baseUrl.replace(/\/+$/, "")}/${url.replace(/^\/+/, "")}`;
@@ -50,14 +58,18 @@ let refreshTokenPromise: Promise<boolean> | null = null;
 
 export function useFetch<T = any>(
   url: string,
-  config?: FetchConfig,
-  runImmediately = true
+  defaultConfig?: FetchConfig,
+  runImmediately = true,
+  authorizationRequired = false
 ): UseFetchReturn<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<FetchError | Error | null>(null);
 
-  // Prevent state updates after component unmounts.
+  /* ------------------------------------------------------------------------ */
+  /* Mounted state                                                            */
+  /* ------------------------------------------------------------------------ */
+
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -68,13 +80,15 @@ export function useFetch<T = any>(
     };
   }, []);
 
+  /* ------------------------------------------------------------------------ */
+  /* Token helpers                                                            */
+  /* ------------------------------------------------------------------------ */
+
   const getAccessToken = () => {
-    // Replace this with your actual React auth/store implementation.
     return localStorage.getItem("access_token");
   };
 
   const getRefreshToken = () => {
-    // Replace this with your actual React auth/store implementation.
     return localStorage.getItem("refresh_token");
   };
 
@@ -82,197 +96,331 @@ export function useFetch<T = any>(
     access_token: string;
     refresh_token?: string;
   }) => {
-    localStorage.setItem("access_token", tokens.access_token);
+    localStorage.setItem(
+      "access_token",
+      tokens.access_token
+    );
 
     if (tokens.refresh_token) {
-      localStorage.setItem("refresh_token", tokens.refresh_token);
+      localStorage.setItem(
+        "refresh_token",
+        tokens.refresh_token
+      );
     }
   };
 
-
-  const triggerFetch = useCallback(async (): Promise<Response> => {
-    const accessToken = getAccessToken();
-
-    const isFormData = config?.body instanceof FormData;
-
-    const defaultHeaders: Record<string, string> = {
-      accept: "application/json",
-    };
-
-    // Do not set Content-Type for FormData.
-    // The browser needs to set multipart/form-data + boundary itself.
-    if (!isFormData) {
-      defaultHeaders["Content-Type"] = "application/json";
-    }
-
-    if (accessToken) {
-      defaultHeaders["Authorization"] =
-        `Bearer ${accessToken.replace(/^"+|"+$/g, "")}`;
-    }
-
-    const finalHeaders: HeadersInit = {
-      ...defaultHeaders,
-      ...config?.headers,
-    };
-
-    if (isFormData && "Content-Type" in finalHeaders) {
-      delete (finalHeaders as Record<string, string>)["Content-Type"];
-    }
-
-    const finalBody = isFormData
-      ? config?.body
-      : config?.body
-        ? JSON.stringify(config.body)
-        : undefined;
-
-    return fetch(makeApiUrl(url), {
-      method: config?.method || "GET",
-      headers: finalHeaders,
-      body: finalBody as BodyInit | undefined,
-      cache: config?.cache,
-      credentials: config?.credentials,
-    });
-  }, [url, config]);
-
   /* ------------------------------------------------------------------------ */
-  /* Refresh token                                                            */
+  /* Trigger request                                                          */
   /* ------------------------------------------------------------------------ */
 
-  const refreshToken = useCallback(async (): Promise<boolean> => {
-    const refreshTokenValue = getRefreshToken();
+  const triggerFetch = useCallback(
+    async (
+      requestConfig?: FetchConfig
+    ): Promise<Response> => {
+      // Runtime config overrides default config
+      const config = {
+        ...defaultConfig,
+        ...requestConfig,
+      };
 
-    if (!refreshTokenValue) {
-      return false;
-    }
+      const accessToken = getAccessToken();
 
-    // If another request is already refreshing the token,
-    // wait for that request instead of creating another one.
-    if (refreshTokenPromise) {
-      return refreshTokenPromise;
-    }
+      const isFormData =
+        config.body instanceof FormData;
 
-    refreshTokenPromise = (async () => {
-      try {
-        const response = await fetch(
-          makeApiUrl(`refresh?token=${encodeURIComponent(refreshTokenValue)}`),
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              accept: "application/json",
-            },
-          }
-        );
+      const defaultHeaders: Record<string, string> = {
+        accept: "application/json",
+      };
 
-        if (!response.ok) {
-          return false;
-        }
-
-        const responseData = await response.json();
-
-        if (!responseData?.ok) {
-          return false;
-        }
-
-        setTokens(responseData.data);
-
-        return true;
-      } catch {
-        return false;
-      } finally {
-        refreshTokenPromise = null;
+      /*
+       * Do not set Content-Type manually for FormData.
+       * Browser needs to add the multipart boundary.
+       */
+      if (!isFormData) {
+        defaultHeaders["Content-Type"] =
+          "application/json";
       }
-    })();
 
-    return refreshTokenPromise;
-  }, []);
+      /*
+       * Add Authorization only when this endpoint
+       * requires authentication.
+       */
+      if (
+        accessToken &&
+        authorizationRequired
+      ) {
+        defaultHeaders["Authorization"] =
+          `Bearer ${accessToken.replace(
+            /^"+|"+$/g,
+            ""
+          )}`;
+      }
+
+      const finalHeaders: HeadersInit = {
+        ...defaultHeaders,
+        ...config.headers,
+      };
+
+      /*
+       * Remove Content-Type for FormData.
+       */
+      if (isFormData) {
+        delete (
+          finalHeaders as Record<string, string>
+        )["Content-Type"];
+      }
+
+      const finalBody = isFormData
+        ? config.body
+        : config.body
+          ? JSON.stringify(config.body)
+          : undefined;
+
+      return fetch(makeApiUrl(url), {
+        method: config.method || "GET",
+        headers: finalHeaders,
+        body: finalBody as BodyInit | undefined,
+        cache: config.cache,
+        credentials: config.credentials,
+      });
+    },
+    [
+      url,
+      defaultConfig,
+      authorizationRequired,
+    ]
+  );
+
+  /* ------------------------------------------------------------------------ */
+  /* Refresh access token                                                     */
+  /* ------------------------------------------------------------------------ */
+
+  const refreshToken = useCallback(
+    async (): Promise<boolean> => {
+      const refreshTokenValue =
+        getRefreshToken();
+
+      if (!refreshTokenValue) {
+        return false;
+      }
+
+      /*
+       * If another request is already refreshing
+       * the token, wait for that request.
+       */
+      if (refreshTokenPromise) {
+        return refreshTokenPromise;
+      }
+
+      refreshTokenPromise = (async () => {
+        try {
+          /*
+           * Backend:
+           *
+           * POST /refresh
+           *
+           * {
+           *   "refresh_token": "..."
+           * }
+           */
+          const response = await fetch(
+            makeApiUrl("refresh"),
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+                accept: "application/json",
+              },
+              body: JSON.stringify({
+                refresh_token:
+                  refreshTokenValue,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            return false;
+          }
+
+          const responseData =
+            await response.json();
+
+          /*
+           * Your backend returns:
+           *
+           * {
+           *   status: "success",
+           *   data: {
+           *     access_token: "..."
+           *   }
+           * }
+           */
+
+          if (
+            responseData?.status !==
+            "success"
+          ) {
+            return false;
+          }
+
+          setTokens(responseData.data);
+
+          return true;
+        } catch {
+          return false;
+        } finally {
+          refreshTokenPromise = null;
+        }
+      })();
+
+      return refreshTokenPromise;
+    },
+    []
+  );
 
   /* ------------------------------------------------------------------------ */
   /* Fetch data                                                                */
   /* ------------------------------------------------------------------------ */
 
-  const fetchData = useCallback(async () => {
-    if (mountedRef.current) {
-      setLoading(true);
-      setError(null);
-    }
-
-    try {
-      let response = await triggerFetch();
-
-      let responseData: any = null;
+  const fetchData = useCallback(
+    async (
+      requestConfig?: FetchConfig
+    ): Promise<FetchResult<T>> => {
+      if (mountedRef.current) {
+        setLoading(true);
+        setError(null);
+      }
 
       try {
-        responseData = await response.clone().json();
-      } catch {
-        responseData = null;
-      }
+        let response =
+          await triggerFetch(requestConfig);
 
-      /* -------------------------------------------------------------------- */
-      /* 403 -> refresh token -> retry                                        */
-      /* -------------------------------------------------------------------- */
+        let responseData: any = null;
 
-      if (response.status === 403) {
-        const refreshed = await refreshToken();
+        /*
+         * Try to parse JSON.
+         */
+        try {
+          responseData =
+            await response.clone().json();
+        } catch {
+          responseData = null;
+        }
 
-        if (refreshed) {
-          response = await triggerFetch();
+        /* ------------------------------------------------------------------ */
+        /* 403 -> refresh token -> retry                                      */
+        /* ------------------------------------------------------------------ */
 
-          try {
-            responseData = await response.clone().json();
-          } catch {
-            responseData = null;
+        if (
+          response.status === 403 &&
+          authorizationRequired
+        ) {
+          const refreshed =
+            await refreshToken();
+
+          if (refreshed) {
+            /*
+             * Retry the original request with
+             * the newly generated access token.
+             */
+            response =
+              await triggerFetch(
+                requestConfig
+              );
+
+            try {
+              responseData =
+                await response
+                  .clone()
+                  .json();
+            } catch {
+              responseData = null;
+            }
           }
         }
-      }
 
-      /* -------------------------------------------------------------------- */
-      /* Handle HTTP errors                                                   */
-      /* -------------------------------------------------------------------- */
+        /* ------------------------------------------------------------------ */
+        /* HTTP error                                                         */
+        /* ------------------------------------------------------------------ */
 
-      if (!response.ok) {
-        const fetchError: FetchError = {
-          status: response.status,
-          statusText: response.statusText,
-          data: responseData,
-          headers: Object.fromEntries(response.headers.entries()),
-          message:
-            responseData?.message ||
-            responseData?.error ||
-            `HTTP Error ${response.status}`,
+        if (!response.ok) {
+          const fetchError: FetchError = {
+            status: response.status,
+            statusText:
+              response.statusText,
+            data: responseData,
+            headers:
+              Object.fromEntries(
+                response.headers.entries()
+              ),
+            message:
+              responseData?.message ||
+              responseData?.error ||
+              `HTTP Error ${response.status}`,
+          };
+
+          if (mountedRef.current) {
+            setError(fetchError);
+          }
+
+          /*
+           * IMPORTANT:
+           * Return the error so the caller can
+           * immediately use it.
+           */
+          return {
+            data: null,
+            error: fetchError,
+          };
+        }
+
+        /* ------------------------------------------------------------------ */
+        /* Success                                                            */
+        /* ------------------------------------------------------------------ */
+
+        if (mountedRef.current) {
+          setData(responseData);
+          setError(null);
+        }
+
+        /*
+         * IMPORTANT:
+         * Return data so the caller can
+         * immediately use it.
+         */
+        return {
+          data: responseData as T,
+          error: null,
         };
+      } catch (err) {
+        const fetchError =
+          err instanceof Error
+            ? err
+            : new Error(
+                "An unknown error occurred"
+              );
 
         if (mountedRef.current) {
           setError(fetchError);
         }
 
-        return;
+        return {
+          data: null,
+          error: fetchError,
+        };
+      } finally {
+        if (mountedRef.current) {
+          setLoading(false);
+        }
       }
-
-      /* -------------------------------------------------------------------- */
-      /* Success                                                              */
-      /* -------------------------------------------------------------------- */
-
-      if (mountedRef.current) {
-        setData(responseData);
-        setError(null);
-      }
-    } catch (err) {
-      if (!mountedRef.current) {
-        return;
-      }
-
-      setError(
-        err instanceof Error
-          ? err
-          : new Error("An unknown error occurred")
-      );
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, [triggerFetch, refreshToken]);
+    },
+    [
+      triggerFetch,
+      refreshToken,
+      authorizationRequired,
+    ]
+  );
 
   /* ------------------------------------------------------------------------ */
   /* Run immediately                                                          */
@@ -283,6 +431,10 @@ export function useFetch<T = any>(
       fetchData();
     }
   }, [fetchData, runImmediately]);
+
+  /* ------------------------------------------------------------------------ */
+  /* Return                                                                   */
+  /* ------------------------------------------------------------------------ */
 
   return {
     data,
