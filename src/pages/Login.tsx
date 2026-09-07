@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Navigate, useNavigate } from "react-router";
+import { Link, Navigate, useNavigate } from "react-router";
 import BaseButton from "../components/base/BaseButton";
 import BaseInput from "../components/base/BaseInput";
 import { useFetch } from "../features/hooks/useFetch";
@@ -25,7 +25,11 @@ function Login() {
             body: { email, password }
         });
         if(res.error) {
-            //TODO show error to user
+            if("status" in res.error &&res.error.status === 401){
+              setErrors("ایمیل یا رمز عبور اشتباه است")
+            }else{
+              setErrors("خطایی رخ داد. دوباره تلاش کنید.")
+            }
             return
         }
         const session = res.data.data.session
@@ -48,6 +52,9 @@ function Login() {
                     <BaseInput label="email" name="email" className="w-full flex items-center gap-x-3" type="email" required></BaseInput>
                     <BaseInput label="password" name="password" className="w-full flex items-center gap-x-3" required minLength={8}></BaseInput>
                     <BaseButton type="submit" className="btn__outline w-full" isLoading={loading}>SignIn</BaseButton>
+                    <p>
+                        آیا حساب کاربری ندارید؟ <Link to="/signup" className="text-blue-500">ثبت نام</Link>
+                    </p>
                     {errors && <span className="text-sm text-red-500">{errors}</span>}
                 </form>
             </div>
