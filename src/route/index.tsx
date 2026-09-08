@@ -30,6 +30,7 @@ const router = createBrowserRouter([
   {
     path: '/login',
     lazy: LazyLogin,
+    // action
   },
   {
     path: '/signup',

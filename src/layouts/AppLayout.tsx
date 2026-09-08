@@ -5,6 +5,8 @@ import LeftSideBar from "../components/leftSideBar/LeftSideBar";
 import { useDispatch } from "react-redux";
 import { setUserInfo } from "../features/user/userSlice";
 import { supabase } from "../services/supbase";
+import { getAccessToken } from "../features/auth/tokenStorage";
+import { getMe } from "../services/user/user.api";
 
 function AppLayout() {
     const navigation = useNavigation();
@@ -42,27 +44,14 @@ function AppLayout() {
     );
 }
 export async function loader() {
-    if (localStorage.getItem('access_token')) {
-        const { data, error } = await supabase.auth.getUser(localStorage.getItem('access_token')!)
-        if (!error && data.user) return data
-        else if (error.status === 403 || error?.status === 400) {
-            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({ refresh_token: localStorage.getItem('refresh_token')! })
-            console.log('refreshData', refreshData)
-            if (refreshError?.code === "refresh_token_already_used" || refreshError?.code === "refresh_token_not_found") {
-                localStorage.removeItem('access_token')
-                localStorage.removeItem('refresh_token')
-                return redirect('/login')
-            }
-            else if (refreshData.session) {
-                localStorage.setItem('access_token', refreshData.session.access_token)
-                localStorage.setItem('refresh_token', refreshData.session.refresh_token)
-                await supabase
-                    .from('users')
-                    .update({ token: refreshData.session.access_token })
-                    .eq('email', refreshData.user?.email)
-            }
-        }
-    } else return redirect('/login')
+    const access_token = getAccessToken()
+    if(access_token) {
+        const res = await getMe()
+        if(res.status === 'success') return res.data?.user
+        return null
+    }else {
+        return redirect('/login')
+    }
 }
 
 export default AppLayout;

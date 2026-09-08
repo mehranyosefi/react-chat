@@ -13,14 +13,14 @@ function LeftSideBar() {
     const [showChatAddMenu, setShowChatAddMenu] = useState<boolean>(false);
     const [showOptionMenu, setShowOptionMenu] = useState<boolean>(false);
     const [chats, setChats] = useState([])
-    const { session } = useSelector(store => store.user);
+    // const { session } = useSelector(store => store.user);
     const optionMenuRef = useRef<null>(null)
     function handleAddItem() {
         setShowChatAddMenu(!showChatAddMenu)
     }
     useEffect(() => {
 
-        getChats()
+        // getChats()
         return () => {
             // this now gets called when the component unmounts
         };
