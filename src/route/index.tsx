@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router";
-import AppLayout, { loader as layoutLoader } from "../layouts/AppLayout";
+import AppLayout from "../layouts/AppLayout";
 import Error from "../pages/Error";
 import Index from "../pages/Index";
 import Test from "../pages/Test";
@@ -13,7 +13,6 @@ const LazySignUp = async () => {
 const router = createBrowserRouter([
   {
     element: <AppLayout />,
-    loader: layoutLoader,
     errorElement: <Error />,
     children: [
       {

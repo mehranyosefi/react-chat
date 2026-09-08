@@ -1,25 +1,42 @@
-import DetailInfo from "@/components/detailInfo/DetailInfo";
-import { Outlet, redirect, useLoaderData, useNavigation } from "react-router";
+import DetailInfo from "../components/detailInfo/DetailInfo";
+import { Outlet, useNavigate,} from "react-router";
 import LeftSideBar from "../components/leftSideBar/LeftSideBar";
 // import type { RootState } from "../store";
 import { useDispatch } from "react-redux";
 import { setUserInfo } from "../features/user/userSlice";
-import { supabase } from "../services/supbase";
+import { useFetch } from "../features/hooks/useFetch";
+import { useEffect } from "react";
 
 function AppLayout() {
-    const navigation = useNavigation();
-    const isLoading = navigation.state === "loading";
     const dispatch = useDispatch();
-    const data = useLoaderData();
-    if (data?.user) {
+    const navigate = useNavigate()
+    const accessToken = localStorage.getItem("access_token");
+    const {data , loading , error} = useFetch("/me", undefined , !!accessToken, true);
+
+    useEffect(() => {
+        if(!accessToken){
+            navigate("/login" , {replace : true})
+        }
+    }, [accessToken , navigate]);
+
+   useEffect(() => {
+    if(data?.data?.user){
         dispatch(setUserInfo({
-            email: data.user.email,
+            email: data.data.user.email,
             session: {
                 access_token: localStorage.getItem('access_token'),
                 refresh_token: localStorage.getItem('refresh_token')
             }
         }))
     }
+   },[data , dispatch])
+   
+   useEffect(() => {
+    if(error && "status" in error && (error.status === 401 || error.status === 403)){
+        navigate("/login" , {replace : true});
+    }
+   }, [error, navigate]);
+    
 
     return (
         <div className="app w-screen h-screen overflow-hidden backdrop-blur-sm bg-black/50">
@@ -41,28 +58,6 @@ function AppLayout() {
         </div>
     );
 }
-export async function loader() {
-    if (localStorage.getItem('access_token')) {
-        const { data, error } = await supabase.auth.getUser(localStorage.getItem('access_token')!)
-        if (!error && data.user) return data
-        else if (error.status === 403 || error?.status === 400) {
-            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({ refresh_token: localStorage.getItem('refresh_token')! })
-            console.log('refreshData', refreshData)
-            if (refreshError?.code === "refresh_token_already_used" || refreshError?.code === "refresh_token_not_found") {
-                localStorage.removeItem('access_token')
-                localStorage.removeItem('refresh_token')
-                return redirect('/login')
-            }
-            else if (refreshData.session) {
-                localStorage.setItem('access_token', refreshData.session.access_token)
-                localStorage.setItem('refresh_token', refreshData.session.refresh_token)
-                await supabase
-                    .from('users')
-                    .update({ token: refreshData.session.access_token })
-                    .eq('email', refreshData.user?.email)
-            }
-        }
-    } else return redirect('/login')
-}
+
 
 export default AppLayout;
