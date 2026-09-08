@@ -96,7 +96,7 @@ function SignUp() {
             </BaseButton>
 
             <p>
-                آیا حساب کاربری دارید؟ <Link to="/login" className="text-blue-500">ورود</Link>
+                آیا حساب کاربری دارید؟ <Link to="/login" className="text-purple-500">ورود</Link>
             </p>
 
             {errors && <span className="text-sm text-red-500">{errors}</span>}

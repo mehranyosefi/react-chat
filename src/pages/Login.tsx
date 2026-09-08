@@ -39,7 +39,6 @@ function Login() {
             email: res.data.data.user.email,
             session: res.data.data.session
         }))
-        debugger
         navigate('/')
     }
     //if user is logged in
@@ -53,7 +52,7 @@ function Login() {
                     <BaseInput label="password" name="password" className="w-full flex items-center gap-x-3" required minLength={8}></BaseInput>
                     <BaseButton type="submit" className="btn__outline w-full" isLoading={loading}>SignIn</BaseButton>
                     <p>
-                        آیا حساب کاربری ندارید؟ <Link to="/signup" className="text-blue-500">ثبت نام</Link>
+                        آیا حساب کاربری ندارید؟ <Link to="/signup" className="text-purple-500">ثبت نام</Link>
                     </p>
                     {errors && <span className="text-sm text-red-500">{errors}</span>}
                 </form>
