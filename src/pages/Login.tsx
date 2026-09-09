@@ -40,9 +40,9 @@ function Login() {
             navigate("/", { replace: true });
         } catch (error) {
             if (error.status === 401) {
-                setErrors("ایمیل یا رمز عبور اشتباه است");
+                setErrors("Invalid email or password.");
             } else {
-                setErrors("خطایی رخ داد. دوباره تلاش کنید.");
+                setErrors("An error occurred. Please try again.");
             }
         } finally {
             setLoading(false);
@@ -70,6 +70,7 @@ function Login() {
                         className="w-full flex items-center gap-x-3"
                         type="email"
                         required
+                        autoFocus
                     />
 
                     <BaseInput
@@ -90,12 +91,12 @@ function Login() {
                     </BaseButton>
 
                     <p>
-                        آیا حساب کاربری ندارید؟{" "}
+                        Don't have an account?{" "}
                         <Link
                             to="/signup"
                             className="text-purple-500"
                         >
-                            ثبت نام
+                            Sign up
                         </Link>
                     </p>
 
