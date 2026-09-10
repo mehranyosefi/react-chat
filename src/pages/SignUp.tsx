@@ -31,7 +31,7 @@ function SignUp() {
 
         // Client-side validation
         if (password !== passwordConfirm) {
-            setErrors("رمز عبور و تکرار آن یکسان نیستند");
+            setErrors("Passwords do not math");
             return;
         }
 
@@ -55,14 +55,11 @@ function SignUp() {
             navigate("/", { replace: true });
         } catch (error) {
             // if (error instanceof ApiError) {
-                if (error.status === 400) {
-                    setErrors("ایمیل قبلا ثبت شده است");
+                if (error.status === 409) {
+                    setErrors("Email already exists.");
                 } else {
-                    setErrors("خطایی رخ داد. دوباره تلاش کنید.");
+                    setErrors("An error occurred. Please try again.");
                 }
-            // } else {
-            //     setErrors("خطایی رخ داد. دوباره تلاش کنید.");
-            // }
         } finally {
             setLoading(false);
         }
@@ -89,6 +86,7 @@ function SignUp() {
                         className="w-full flex items-center gap-x-3"
                         type="text"
                         required
+                        autoFocus
                     />
 
                     <BaseInput
@@ -126,12 +124,12 @@ function SignUp() {
                     </BaseButton>
 
                     <p>
-                        آیا حساب کاربری دارید؟{" "}
+                       Already have an account?{" "}
                         <Link
                             to="/login"
                             className="text-purple-500"
                         >
-                            ورود
+                            Log in
                         </Link>
                     </p>
 
