@@ -10,24 +10,24 @@ function ChatRoom() {
     const { username } = useParams()
     // const { email } = useSelector((store) => store.user)
 
-    useEffect(() => {
-        Promise.all([
-            fetchChat(),
-            fetchMessages()
-        ])
-        const messageListener = supabase
-            .channel(username!.toString())
-            .on(
-                "postgres_changes",
-                { event: "INSERT", schema: "public", table: "message" },
-                (payload) => {
-                    console.log("Change received!", payload);
-                }
-            )
-            .subscribe();
+    // useEffect(() => {
+    //     Promise.all([
+    //         fetchChat(),
+    //         fetchMessages()
+    //     ])
+    //     const messageListener = supabase
+    //         .channel(username!.toString())
+    //         .on(
+    //             "postgres_changes",
+    //             { event: "INSERT", schema: "public", table: "message" },
+    //             (payload) => {
+    //                 console.log("Change received!", payload);
+    //             }
+    //         )
+    //         .subscribe();
 
-        return () => messageListener.unsubscribe();
-    }, [username])
+    //     return () => messageListener.unsubscribe();
+    // }, [username])
 
     async function fetchChat() {
         const { data, error } = await supabase

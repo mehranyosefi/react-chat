@@ -1,63 +1,79 @@
 import { FormEvent, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Link, Navigate, useNavigate } from "react-router";
+
 import BaseButton from "../components/base/BaseButton";
 import BaseInput from "../components/base/BaseInput";
-import { login } from "../services/auth/auth.api";
+
+import { signup } from "../services/auth/auth.api";
 import { getAccessToken, setTokens } from "../features/auth/tokenStorage";
 import { setUserInfo } from "../features/user/userSlice";
 
-function Login() {
-    const access_token = getAccessToken()
-
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-
+function SignUp() {
     const [errors, setErrors] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const access_token = getAccessToken()
     async function formSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setErrors("");
+
         const formData = new FormData(e.currentTarget);
+
+        const name = String(formData.get("name") ?? "");
         const email = String(formData.get("email") ?? "");
         const password = String(formData.get("password") ?? "");
+        const passwordConfirm = String(
+            formData.get("passwordConfirm") ?? ""
+        );
+
+        // Client-side validation
+        if (password !== passwordConfirm) {
+            setErrors("Passwords do not math");
+            return;
+        }
 
         try {
             setLoading(true);
-            const res = await login({
+            const res = await signup({
+                name,
                 email,
                 password,
+                passwordConfirm,
             });
+
             const { user, session } = res.data;
             setTokens(session);
             dispatch(
                 setUserInfo({
                     email: user.email,
                     name: user.name,
-                }),
+                })
             );
             navigate("/", { replace: true });
         } catch (error) {
-            if (error.status === 401) {
-                setErrors("Invalid email or password.");
-            } else {
-                setErrors("An error occurred. Please try again.");
-            }
+            // if (error instanceof ApiError) {
+                if (error.status === 409) {
+                    setErrors("Email already exists.");
+                } else {
+                    setErrors("An error occurred. Please try again.");
+                }
         } finally {
             setLoading(false);
         }
     }
-
     if (access_token) {
         return <Navigate to="/" replace />;
     }
+
 
     return (
         <div className="flex items-center justify-center h-screen">
             <div className="rounded-xl p-10 bg-gray-900/90">
                 <h1 className="font-semibold text-xl">
-                    Your welcome
+                    Create Account
                 </h1>
 
                 <form
@@ -65,12 +81,20 @@ function Login() {
                     className="pt-4 mt-5 flex flex-col gap-y-7"
                 >
                     <BaseInput
+                        label="name"
+                        name="name"
+                        className="w-full flex items-center gap-x-3"
+                        type="text"
+                        required
+                        autoFocus
+                    />
+
+                    <BaseInput
                         label="email"
                         name="email"
                         className="w-full flex items-center gap-x-3"
                         type="email"
                         required
-                        autoFocus
                     />
 
                     <BaseInput
@@ -82,21 +106,30 @@ function Login() {
                         minLength={8}
                     />
 
+                    <BaseInput
+                        label="confirm password"
+                        name="passwordConfirm"
+                        className="w-full flex items-center gap-x-3"
+                        type="password"
+                        required
+                        minLength={8}
+                    />
+
                     <BaseButton
                         type="submit"
                         className="btn__outline w-full"
                         isLoading={loading}
                     >
-                        SignIn
+                        SignUp
                     </BaseButton>
 
                     <p>
-                        Don't have an account?{" "}
+                       Already have an account?{" "}
                         <Link
-                            to="/signup"
+                            to="/login"
                             className="text-purple-500"
                         >
-                            Sign up
+                            Log in
                         </Link>
                     </p>
 
@@ -111,4 +144,4 @@ function Login() {
     );
 }
 
-export default Login;
+export default SignUp;

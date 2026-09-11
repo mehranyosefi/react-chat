@@ -6,6 +6,9 @@ import Test from "../pages/Test";
 const LazyLogin = async () => {
   return { Component: (await import("../pages/Login")).default }
 }
+const LazySignUp = async () => {
+  return { Component: (await import("../pages/SignUp")).default }
+}
 
 const router = createBrowserRouter([
   {
@@ -27,6 +30,11 @@ const router = createBrowserRouter([
   {
     path: '/login',
     lazy: LazyLogin,
+    // action
+  },
+  {
+    path: '/signup',
+    lazy: LazySignUp,
   },
 
   /* only for test */
