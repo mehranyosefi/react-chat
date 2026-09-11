@@ -71,7 +71,7 @@ function SignUp() {
 
     return (
         <div className="flex items-center justify-center h-screen">
-            <div className="rounded-xl p-10 bg-gray-900/90">
+            <div className="rounded-xl p-5 md:p-10 bg-gray-900/90">
                 <h1 className="font-semibold text-xl">
                     Create Account
                 </h1>
@@ -117,7 +117,7 @@ function SignUp() {
 
                     <BaseButton
                         type="submit"
-                        className="btn__outline w-full"
+                        variant="outline"
                         isLoading={loading}
                     >
                         SignUp

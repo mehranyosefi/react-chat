@@ -41,7 +41,7 @@
      disabled:opacity-70 disabled:hover:bg-gray-900/80 disabled:text-purple-500 disabled:cursor-auto;
   }
   .btn__outline {
-    @apply !bg-transparent outline outline-gray-400 hover:!bg-purple-500;
+    @apply bg-transparent outline outline-gray-400 hover:!bg-purple-500;
   }
   .transition-fade {
     animation: fade 0.2s;

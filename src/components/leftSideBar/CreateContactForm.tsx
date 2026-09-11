@@ -5,11 +5,11 @@ import { supabase } from "../../services/supbase";
 import BaseButton from "../base/BaseButton";
 import BaseInput from "../base/BaseInput";
 
-function ChatAddMenu(props: { handleCloseModal: () => void, handleRefreshItems: () => void }) {
-    const { handleCloseModal, handleRefreshItems } = props;
-    const modal = useRef(null)
+function ChatAddMenu(props: { handleClose: () => void, handleRefreshItems: () => void }) {
+    const { handleClose, handleRefreshItems } = props;
+    const formModel = useRef(null)
     const { session } = useSelector(store => store.user)
-    useOutsideClick(modal, () => handleCloseModal())
+    useOutsideClick(formModel, () => handleClose())
     const [loading, setLoading] = useState(false)
 
     async function createContact(e: FormEvent) {
@@ -25,20 +25,17 @@ function ChatAddMenu(props: { handleCloseModal: () => void, handleRefreshItems: 
             .insert({ name, username, user_token: session.access_token })
         if (!error && status === 201) {
             handleRefreshItems()
-            handleCloseModal()
+            handleClose()
         }
         setLoading(false)
     }
     return (
-        <div className="modal">
-            <div className="modal__container h-screen w-full flex items-center justify-center">
-                <form onSubmit={createContact} className={`w-[25rem] rounded-xl bg-gray-900/80 p-5 flex flex-col gap-y-7
+        <div className="create-form">
+            <div className="create-form__container">
+                <form onSubmit={createContact} className={` flex flex-col gap-y-7
                 `}
-                    ref={modal}>
-                    <div className="modal__header">
-                        <span className="text-2xl">New Contact</span>
-                    </div>
-                    <div className="modal__body flex flex-col gap-y-5">
+                    ref={formModel}>
+                    <div className="create-form__body flex flex-col gap-y-5">
                         <div className="flex gap-x-2">
                             <BaseInput label="name" name="name" className="flex gap-x-4 w-full" />
                         </div>
@@ -46,9 +43,9 @@ function ChatAddMenu(props: { handleCloseModal: () => void, handleRefreshItems: 
                             <BaseInput label="username" name="username" className="flex gap-x-4 w-full" />
                         </div>
                     </div>
-                    <div className="modal__footer flex gap-x-5 justify-around">
-                        <BaseButton type="submit" isLoading={loading}>DONE</BaseButton>
-                        <BaseButton emitOnClik={handleCloseModal} className="btn__outline">CANCEL</BaseButton>
+                    <div className="create-form__footer flex gap-x-5 justify-around">
+                        <BaseButton type="submit" isLoading={loading} className="grow">DONE</BaseButton>
+                        <BaseButton emitOnClick={handleClose} variant="outline" className="grow">CANCEL</BaseButton>
                     </div>
                 </form>
             </div>

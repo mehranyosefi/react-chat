@@ -1,23 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { supabase } from "../../services/supbase";
 import BaseButton from "../base/BaseButton";
-import ChatAddMenu from "./ChatAddMenu";
+import CreateContactForm from "./CreateContactForm"
 import ChatItem from "./ChatItem";
+import { Modal } from "../base/modal/modal";
 
 function LeftSideBar() {
     const navigate = useNavigate()
-    const [showChatAddMenu, setShowChatAddMenu] = useState<boolean>(false);
     const [showOptionMenu, setShowOptionMenu] = useState<boolean>(false);
     const [chats, setChats] = useState([])
     // const { session } = useSelector(store => store.user);
     const optionMenuRef = useRef<null>(null)
-    function handleAddItem() {
-        setShowChatAddMenu(!showChatAddMenu)
-    }
+    const [createContactModalIsOpen, setCreateContactModalIsOpen] = useState(false)
+
     useEffect(() => {
 
         // getChats()
@@ -82,16 +80,21 @@ function LeftSideBar() {
 
                 </ul>
             </div>
-            <button className="btn__action absolute right-5 bottom-5 flex items-center justify-center shadow" onClick={handleAddItem}
+            <button className="btn__action absolute right-5 bottom-5 flex items-center justify-center shadow" onClick={()=> setCreateContactModalIsOpen(true)}
             >
                 <svg className="size-5">
                     <use className="size-5" href="/img/icons.svg#user-add"></use>
                 </svg>
             </button>
-            {showChatAddMenu && createPortal(
-                <ChatAddMenu handleCloseModal={handleAddItem} handleRefreshItems={getChats} />,
-                document.getElementById("portals")!
-            )}
+
+            <Modal
+            isOpen={ createContactModalIsOpen }
+            onClose={()=> setCreateContactModalIsOpen(false)}
+            title="New Contact"
+            size="md"
+            >
+                <CreateContactForm handleClose={()=> setCreateContactModalIsOpen(false)} handleRefreshItems={getChats}></CreateContactForm>
+            </Modal>
         </div>
     );
 }
