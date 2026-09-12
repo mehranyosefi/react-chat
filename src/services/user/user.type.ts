@@ -5,7 +5,7 @@ type User = {
 }
 
 export interface UserResponse {
-    status: "success" | "error" | "fale";
+    status: "success" | "error" | "false";
     data?: {
         user: User
     }

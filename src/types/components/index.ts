@@ -28,7 +28,7 @@ export interface BaseButtonProps
   emitOnClik?: () => void;
 }
 
-export interface CahtItemProps
+export interface ChatItemProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   name: string;
   username: string;
