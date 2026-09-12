@@ -4,8 +4,7 @@ import LeftSideBar from "../components/leftSideBar/LeftSideBar";
 // import type { RootState } from "../store";
 import { useDispatch } from "react-redux";
 import { setUserInfo } from "../features/user/userSlice";
-import { supabase } from "../services/supbase";
-import { getAccessToken } from "../features/auth/tokenStorage";
+import { getAccessToken } from "../utility/auth/tokenStorage";
 import { getMe } from "../services/user/user.api";
 
 function AppLayout() {

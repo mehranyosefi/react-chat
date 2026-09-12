@@ -1,7 +1,7 @@
 import { Link } from "react-router"
-import { CahtItemProps } from "../../types/components"
+import { ChatItemProps } from "../../types/components"
 
-function ChatItem(props: CahtItemProps) {
+function ChatItem(props: ChatItemProps) {
     const { name, username, created_at } = props
 
     function toLocale() {

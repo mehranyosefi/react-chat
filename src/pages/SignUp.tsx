@@ -6,8 +6,9 @@ import BaseButton from "../components/base/BaseButton";
 import BaseInput from "../components/base/BaseInput";
 
 import { signup } from "../services/auth/auth.api";
-import { getAccessToken, setTokens } from "../features/auth/tokenStorage";
+import { getAccessToken, setTokens } from "../utility/auth/tokenStorage";
 import { setUserInfo } from "../features/user/userSlice";
+import { ApiError } from "../features/api/apiClient.type";
 
 function SignUp() {
     const [errors, setErrors] = useState("");
@@ -31,7 +32,7 @@ function SignUp() {
 
         // Client-side validation
         if (password !== passwordConfirm) {
-            setErrors("Passwords do not math");
+            setErrors("Passwords do not match");
             return;
         }
 
@@ -55,11 +56,8 @@ function SignUp() {
             navigate("/", { replace: true });
         } catch (error) {
             // if (error instanceof ApiError) {
-                if (error.status === 409) {
-                    setErrors("Email already exists.");
-                } else {
-                    setErrors("An error occurred. Please try again.");
-                }
+            const apiError = error as ApiError;
+            setErrors(apiError.message);
         } finally {
             setLoading(false);
         }
