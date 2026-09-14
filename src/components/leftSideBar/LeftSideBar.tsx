@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { supabase } from "../../services/supbase";
 import BaseButton from "../base/BaseButton";
+import { getContacts , deleteContact } from "../../services/contact/contact.api";
+import {Contact} from "../../services/contact/contact.type"
 import CreateContactForm from "./CreateContactForm"
 import ChatItem from "./ChatItem";
 import { Modal } from "../base/modal/modal";
@@ -11,24 +12,31 @@ import { Modal } from "../base/modal/modal";
 function LeftSideBar() {
     const navigate = useNavigate()
     const [showOptionMenu, setShowOptionMenu] = useState<boolean>(false);
-    const [chats, setChats] = useState([])
+    const [contacts, setContacts] = useState<Contact[]>([])
     // const { session } = useSelector(store => store.user);
     const optionMenuRef = useRef<null>(null)
     const [createContactModalIsOpen, setCreateContactModalIsOpen] = useState(false)
 
     useEffect(() => {
 
-        // getChats()
-        return () => {
-            // this now gets called when the component unmounts
-        };
-
+        getContactsList();
     }, [])
-    async function getChats() {
-        const { data, error } = await supabase
-            .from('chat')
-            .select().eq('user_token', session.access_token)
-        if (!error && data) setChats(data)
+    async function getContactsList() {
+        try{
+            const res = await getContacts()
+            setContacts(res.data)
+        } catch (error) {
+            console.error("Error fetching contacts:", error);
+        }
+    }
+
+    async function handleDeleteContact(id: string) {
+        try {
+            await deleteContact(id);
+            await getContactsList(); 
+        } catch (error) {
+            console.error("Error deleting contact:", error);
+        }
     }
 
     useOutsideClick(optionMenuRef, () => setShowOptionMenu(false))
@@ -72,9 +80,9 @@ function LeftSideBar() {
             </div>
             <div className="max-h-[calc(100vh-76px)] overflow-y-auto">
                 <ul>
-                    {chats && chats.map((chat) => {
-                        return <li key={chat.username}>
-                            <ChatItem name={chat.name} username={chat.username} created_at={chat.created_at} />
+                    {contacts && contacts.map((contact, index) => {
+                        return <li key={contact._id}>
+                            <ChatItem id={contact._id} name={contact.name} contactId={contact.contact._id} createdAt={contact.createdAt} onDelete={handleDeleteContact} isLast={index=== contacts.length-1} handleRefreshItem={getContactsList} />
                         </li>
                     })}
 
@@ -93,7 +101,7 @@ function LeftSideBar() {
             title="New Contact"
             size="md"
             >
-                <CreateContactForm handleClose={()=> setCreateContactModalIsOpen(false)} handleRefreshItems={getChats}></CreateContactForm>
+                <CreateContactForm handleClose={()=> setCreateContactModalIsOpen(false)} handleRefreshItems={getContactsList}></CreateContactForm>
             </Modal>
         </div>
     );
