@@ -6,7 +6,7 @@ import BaseInput from "../base/BaseInput";
 
 function CreateContactForm(props: {
   handleClose: () => void;
-  handleRefreshItems: () => void;
+  handleRefreshItems?: () => void;
 }) {
   const { handleClose, handleRefreshItems } = props;
   const formModel = useRef(null);
@@ -22,7 +22,7 @@ function CreateContactForm(props: {
 
     try {
       await createContact({ name, email });
-      handleRefreshItems();
+      await handleRefreshItems?.();
       handleClose();
     } catch (error) {
       console.error("Error creating contact:", error);
