@@ -24,16 +24,16 @@ function AppLayout() {
 
     return (
         <div className="app w-screen h-screen overflow-hidden backdrop-blur-sm bg-black/50">
-            <div className="2xl:container mx-auto">
-                <div className="flex h-screen">
-                    <div className="w-full md:w-96 h-full border-r border-gray-500">
+            <div className="mx-auto max-w-[2150px] h-screen p-0 md:p-8">
+                <div className="flex h-full md:h-[calc(100vh-64px)]">
+                    <div className="w-full md:w-96 h-full md:rounded-3xl p-5 bg-gray-800">
                         <LeftSideBar />
                     </div>
                     <div className="hidden md:flex grow-[3]">
                         <div className="grow">
                             <Outlet />
                         </div>
-                        <div className="w-96 hidden lg:flex border-l border-gray-500">
+                        <div className="w-96 hidden lg:flex">
                             <DetailInfo></DetailInfo>
                         </div>
                     </div>
