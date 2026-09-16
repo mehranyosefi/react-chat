@@ -50,7 +50,7 @@ function LeftSideBar() {
 
   return (
     <div className="relative h-full">
-      <div className="bg-gray-900/80 shadow-md relative">
+      <div className="relative">
         <div className="flex items-center p-3 gap-x-4">
           {activeTabId === "contacts" ? (
             <button
@@ -72,14 +72,14 @@ function LeftSideBar() {
                 <div className="menu-option absolute left-10 top-14 rounded-xl bg-gray-900 p-5">
                   <ul className="list-none">
                     <li>
-                      <BaseButton emitOnClik={handleLogOut}>logLout</BaseButton>
+                      <BaseButton emitOnClick={handleLogOut}>logLout</BaseButton>
                     </li>
                   </ul>
                 </div>
               )}
             </div>
           )}
-          <div className="flex items-center w-full bg-gray-800 rounded-[25px] ">
+          <div className="flex items-center w-full bg-gray-700/50 rounded-[25px] ">
             <svg className="size-7 ml-3">
               <use
                 className="size-7"

@@ -1,11 +1,11 @@
 import { Link } from "react-router";
-import { ChatItemProps } from "../../types/components";
+import { ContactProps } from "../../types/components";
 import BaseButton from "../base/BaseButton";
 import { useState, useRef } from "react";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { Modal } from "../base/modal/modal";
 import EditContactForm from "../leftSideBar/EditContactForm"
-function ChatItem(props: ChatItemProps) {
+export default function ContactItem(props: ContactProps) {
   const { id, name, contactId, createdAt, onDelete, isLast , handleRefreshItem } = props;
   const [showMenu, setShowMenu] = useState(false);
   const [editContactModalIsOpen, setEditContactModalIsOpen] = useState(false)
@@ -88,4 +88,3 @@ function ChatItem(props: ChatItemProps) {
   );
 }
 
-export default ChatItem;

@@ -1,4 +1,4 @@
-import ChatItem from "./ChatItem";
+import ContactItem from "./ContactItem";
 import { useEffect, useState } from "react";
 import { getContacts, deleteContact } from "../../services/contact/contact.api";
 import { Contact } from "../../services/contact/contact.type";
@@ -36,14 +36,14 @@ function ContactList({
   }
 
   return (
-    <div className="max-h-[calc(100vh-76px)] overflow-y-auto">
+    <div className="">
       {loading && <div className="flex justify-center py-5">Loading...</div>}
       <ul>
         {contacts &&
           contacts.map((contact, index) => {
             return (
               <li key={contact._id}>
-                <ChatItem
+                <ContactItem
                   id={contact._id}
                   name={contact.name}
                   contactId={contact.contact._id}
