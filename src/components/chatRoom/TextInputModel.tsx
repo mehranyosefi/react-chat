@@ -15,7 +15,7 @@ function TextInputModel(props: { emitValue: (val: string) => void, classes?: str
     }
     return (
         <div className="text-input-model flex items-center gap-x-2 mb-7">
-            <div className={`rounded-3xl rounded-br-none px-4 py-0 flex items-center gap-x-1 bg-gray-900/80 ${classes}`}>
+            <div className={`rounded-3xl rounded-br-none px-4 py-0 flex items-center gap-x-1 bg-gray-800 ${classes}`}>
                 <svg className="size-6 cursor-pointer text-gray-300 hover:text-purple-500 transition duration-300"><use className="size-6" href="/img/icons.svg#iconoir-emoji"></use></svg>
                 {/* <input type="text" onInput={(e) => } className="grow border-none outline-none py-2 m-2 pl-2" placeholder="Message" /> */}
                 <BaseInput onKeyDown={handleKeyDown} model={model} updateModel={(val: string) => updateModel(val)}
