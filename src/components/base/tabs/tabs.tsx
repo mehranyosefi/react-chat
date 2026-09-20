@@ -1,53 +1,21 @@
-import { ReactNode, useRef, useEffect } from "react";
+import { TabProps } from "./tabs.type";
+import { useEffect, useState } from "react";
+import Tab from "./Tab";
 
-type TabsItem = {
-  id: string;
-  component: ReactNode;
-  index: number;
-};
-
-type TabsProps = {
-  tabs: TabsItem[];
-  activeTabId: string;
-};
-
-function Tabs({ tabs, activeTabId }: TabsProps) {
-  const previousTabId = useRef(activeTabId);
-  const hasTabChanged = previousTabId.current !== activeTabId;
-  const currentTab = tabs.find((tab) => tab.id === activeTabId);
-  const previousTab = tabs.find((tab) => tab.id === previousTabId.current);
-
-  const direction =
-    (currentTab?.index ?? 0) > (previousTab?.index ?? 0)
-      ? "forward"
-      : "backward";
+function Tabs({ tabs, activeTabId: initialActiveTabId }: TabProps) {
+  const [activeTabId, setActiveTabId] = useState(
+    initialActiveTabId ?? tabs[0]?.id,
+  );
 
   useEffect(() => {
-    previousTabId.current = activeTabId;
-  }, [activeTabId]);
+    if (initialActiveTabId) {
+      setActiveTabId(initialActiveTabId);
+    }
+  }, [initialActiveTabId]);
 
   return (
     <div className="h-full overflow-hidden">
-      {tabs.map((tab) => {
-        const isActive = tab.id === activeTabId;
-
-        return (
-          <div
-            key={tab.id}
-            className={
-              isActive
-                ? hasTabChanged
-                  ? direction === "forward"
-                    ? "animation-slide-left"
-                    : "animation-slide-right"
-                  : ""
-                : "hidden"
-            }
-          >
-            {tab.component}
-          </div>
-        );
-      })}
+      <Tab tabs={tabs} activeTabId={activeTabId} />
     </div>
   );
 }
