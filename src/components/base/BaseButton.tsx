@@ -15,6 +15,7 @@ export interface BaseButtonProps {
   paddingY?: string;
   paddingX?: string;
   variant?: ButtonVariant;
+  rounded?: "rounded-none" | "rounded-sm" | "rounded-md" | "rounded-lg" | "rounded-xl" | "rounded-2xl" | "rounded-3xl" | "rounded-full";
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -38,6 +39,7 @@ function BaseButton({
   paddingY = "py-2",
   paddingX = "px-12",
   variant = "primary",
+  rounded = "rounded-xl",
 }: BaseButtonProps) {
   const navigate = useNavigate();
 
@@ -52,8 +54,9 @@ function BaseButton({
 
   const buttonClassName = `
     ${paddingY} ${paddingX} 
-    ${variantClasses[variant]} 
-    rounded-xl cursor-pointer transition-colors duration-300 text-sm font-medium
+    ${variantClasses[variant]}
+    ${rounded}
+    cursor-pointer transition-colors duration-300 text-sm font-medium
     disabled:opacity-60 disabled:cursor-not-allowed
     ${className}
   `.trim().replace(/\s+/g, " ");

@@ -54,14 +54,18 @@ function LeftSideBar() {
       <div className="relative">
         <div className="flex items-center p-3 gap-x-4">
           {activeTabId === "contacts" ? (
-            <button
-              onClick={() => setActiveTabId("conversations")}
-              className="size-10 flex items-center justify-center cursor-pointer rounded-full text-gray-300 transition-colors duration-300 hover:bg-gray-500"
+            <BaseButton
+              emitOnClick={() => setActiveTabId("conversations")}
+              className="size-10 flex items-center justify-center text-gray-300 transition-colors duration-300 hover:bg-gray-500"
+              paddingX="0"
+              paddingY="0"
+              variant="none"
+              rounded="rounded-full"
             >
               <svg className="size-6">
                 <use href="/img/icons.svg#arrow-back"></use>
               </svg>
-            </button>
+            </BaseButton>
           ) : (
             <div ref={optionMenuRef}>
               <svg
@@ -81,7 +85,7 @@ function LeftSideBar() {
               )}
             </div>
           )}
-          <div className="flex items-center w-full bg-gray-700/50 rounded-[25px] ">
+          <div className="flex items-center w-[calc(100%-56px)] bg-gray-700/50 rounded-3xl">
             <svg className="size-7 ml-3">
               <use
                 className="size-7"
