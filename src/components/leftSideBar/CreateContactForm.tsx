@@ -3,6 +3,7 @@ import { createContact } from "../../services/contact/contact.api";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import BaseButton from "../base/BaseButton";
 import BaseInput from "../base/BaseInput";
+import { ApiError } from "../../features/api/apiClient.type";
 
 function CreateContactForm(props: {
   handleClose: () => void;
@@ -12,20 +13,23 @@ function CreateContactForm(props: {
   const formModel = useRef(null);
   useOutsideClick(formModel, () => handleClose());
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<string | null>(null);
 
   async function handleCreateContact(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    setErrors(null);
     const formData = new FormData(e.currentTarget);
     const name = String(formData.get("name") ?? "");
     const email = String(formData.get("email") ?? "");
 
     try {
       await createContact({ name, email });
-      await handleRefreshItems?.();
+      handleRefreshItems?.();
       handleClose();
-    } catch (error) {
-      console.error("Error creating contact:", error);
+    } catch (err) {
+      const apiError = err as ApiError;
+      setErrors(apiError.message);
     } finally {
       setLoading(false);
     }
@@ -57,6 +61,9 @@ function CreateContactForm(props: {
               />
             </div>
           </div>
+          {errors && (
+            <div className="text-red-500 text-sm text-center">{errors}</div>
+          )}
           <div className="create-form__footer flex gap-x-5 justify-around">
             <BaseButton type="submit" isLoading={loading} className="grow">
               DONE

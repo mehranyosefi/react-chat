@@ -1,13 +1,14 @@
-import { useRef, useState } from "react";
+import { useRef, useState, lazy } from "react";
 import { useNavigate } from "react-router";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { supabase } from "../../services/supbase";
 import BaseButton from "../base/BaseButton";
-import Tabs from "../base/tabs/tabs";
-import ContactList from "./ContactList";
-import ConversationList from "./ConversationList";
+import { useContacts } from "../../features/hooks/useContacts";
+import Tabs from "../base/tabs/Tabs";
 import CreateContactForm from "./CreateContactForm";
 import { Modal } from "../base/modal/modal";
+const ContactList = lazy(() => import("./ContactList"));
+const ConversationList = lazy(() => import("./ConversationList"));
 
 function LeftSideBar() {
   const navigate = useNavigate();
@@ -16,24 +17,24 @@ function LeftSideBar() {
   const optionMenuRef = useRef<null>(null);
   const [createContactModalIsOpen, setCreateContactModalIsOpen] =
     useState(false);
+  const { contacts, loading, refresh, deleteContact } = useContacts();
   const [activeTabId, setActiveTabId] = useState<string>("conversations");
-  const [refreshContactsFn, setRefreshContactsFn] = useState<
-    (() => void) | null
-  >(null);
 
   const tabs = [
     {
       id: "conversations",
-      component: <ConversationList />,
+      component: ConversationList,
       index: 0,
     },
     {
       id: "contacts",
-      component: (
-        <ContactList
-          onRefreshReady={(refreshFn) => setRefreshContactsFn(() => refreshFn)}
-        />
-      ),
+      component: ContactList,
+      props: {
+        contacts,
+        loading,
+        onDelete: deleteContact,
+        handleRefreshItem: refresh,
+      },
       index: 1,
     },
   ];
@@ -55,10 +56,11 @@ function LeftSideBar() {
           {activeTabId === "contacts" ? (
             <button
               onClick={() => setActiveTabId("conversations")}
-              className="text-2xl cursor-pointer text-gray-300 transition-colors duration-300 hover:text-gray-100"
+              className="size-10 flex items-center justify-center cursor-pointer rounded-full text-gray-300 transition-colors duration-300 hover:bg-gray-500"
             >
-              {" "}
-              ‹{/* use svg */}
+              <svg className="size-6">
+                <use href="/img/icons.svg#arrow-back"></use>
+              </svg>
             </button>
           ) : (
             <div ref={optionMenuRef}>
@@ -122,7 +124,7 @@ function LeftSideBar() {
       >
         <CreateContactForm
           handleClose={() => setCreateContactModalIsOpen(false)}
-          handleRefreshItems={refreshContactsFn ?? undefined}
+          handleRefreshItems={refresh}
         ></CreateContactForm>
       </Modal>
     </div>
