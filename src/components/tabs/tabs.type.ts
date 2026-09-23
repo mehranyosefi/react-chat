@@ -1,8 +1,8 @@
-import { ComponentType } from "react";
+import { Component } from "react";
 
 export type TabItem = {
   id: string;
-  component: ComponentType<any>;
+  component: Component;
   props?: Record<string, unknown>;
   index: number;
   children?: TabItem[];
@@ -14,6 +14,6 @@ export type TabProps = {
   setActiveTabId?: (id: string) => void;
 };
 export type TabLoaderProps = {
-  component: ComponentType<any>;
+  component:Component;
   props?: Record<string, unknown>;
 };

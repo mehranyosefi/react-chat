@@ -3,7 +3,7 @@ import { ContactProps } from "../../types/components";
 import BaseButton from "../base/BaseButton";
 import { useState, useRef } from "react";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
-import { Modal } from "../base/modal/modal";
+import { BaseModal } from "../base/modal/BaseModal";
 import EditContactForm from "../leftSideBar/EditContactForm"
 export default function ContactItem(props: ContactProps) {
   const { id, name, contactId, createdAt, onDelete, isLast , handleRefreshItem } = props;
@@ -71,7 +71,7 @@ export default function ContactItem(props: ContactProps) {
         )}
       </div>
     </div>
-    <Modal
+    <BaseModal
       isOpen={editContactModalIsOpen}
       onClose={() => setEditContactModalIsOpen(false)}
       title="Edit Contact"
@@ -83,7 +83,7 @@ export default function ContactItem(props: ContactProps) {
         handleClose={() => setEditContactModalIsOpen(false)}
         handleRefreshItems={handleRefreshItem}
       />
-    </Modal>
+    </BaseModal>
     </>
   );
 }

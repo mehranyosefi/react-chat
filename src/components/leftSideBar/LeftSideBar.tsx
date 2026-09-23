@@ -4,9 +4,9 @@ import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { supabase } from "../../services/supbase";
 import BaseButton from "../base/BaseButton";
 import { useContacts } from "../../features/hooks/useContacts";
-import Tabs from "../base/tabs/Tabs";
+import Tabs from "../tabs/Tabs";
 import CreateContactForm from "./CreateContactForm";
-import { Modal } from "../base/modal/modal";
+import { BaseModal } from "../base/modal/BaseModal";
 const ContactList = lazy(() => import("./ContactList"));
 const ConversationList = lazy(() => import("./ConversationList"));
 
@@ -120,7 +120,7 @@ function LeftSideBar() {
         )}
       </button>
 
-      <Modal
+      <BaseModal
         isOpen={createContactModalIsOpen}
         onClose={() => setCreateContactModalIsOpen(false)}
         title="New Contact"
@@ -130,7 +130,7 @@ function LeftSideBar() {
           handleClose={() => setCreateContactModalIsOpen(false)}
           handleRefreshItems={refresh}
         ></CreateContactForm>
-      </Modal>
+      </BaseModal>
     </div>
   );
 }

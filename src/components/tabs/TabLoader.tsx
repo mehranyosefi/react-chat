@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { TabLoaderProps } from "./tabs.type";
-import Loader from "../Loader";
+import Loader from "../base/Loader";
 
 function TabLoader({component:Component , props}:TabLoaderProps){
     return(

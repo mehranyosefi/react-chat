@@ -20,7 +20,7 @@ const sizeClasses = {
   full: "max-w-5xl",
 };
 
-export const Modal: React.FC<ModalProps> = ({
+export const BaseModal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   title,
