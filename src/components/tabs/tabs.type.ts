@@ -1,19 +1,19 @@
-import { Component } from "react";
+export type TabAnimation = "forward" | "backward"
 
 export type TabItem = {
   id: string;
-  component: Component;
+  component: string;
   props?: Record<string, unknown>;
-  index: number;
-  children?: TabItem[];
+  animation?:string
 };
 
 export type TabProps = {
   tabs: TabItem[];
   activeTabId?: string;
-  setActiveTabId?: (id: string) => void;
+  animation : TabAnimation
 };
+
 export type TabLoaderProps = {
-  component:Component;
+  component:string;
   props?: Record<string, unknown>;
 };

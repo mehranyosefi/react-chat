@@ -1,21 +1,15 @@
-import { TabProps } from "./tabs.type";
-import { useEffect, useState } from "react";
 import Tab from "./Tab";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
 
-function Tabs({ tabs, activeTabId: initialActiveTabId }: TabProps) {
-  const [activeTabId, setActiveTabId] = useState(
-    initialActiveTabId ?? tabs[0]?.id,
+function Tabs() {
+  const { tabs, activeTabId, animation } = useSelector(
+    (state: RootState) => state.tab,
   );
-
-  useEffect(() => {
-    if (initialActiveTabId) {
-      setActiveTabId(initialActiveTabId);
-    }
-  }, [initialActiveTabId]);
 
   return (
     <div className="h-full overflow-hidden">
-      <Tab tabs={tabs} activeTabId={activeTabId} />
+      <Tab tabs={tabs} activeTabId={activeTabId} animation={animation} />
     </div>
   );
 }
