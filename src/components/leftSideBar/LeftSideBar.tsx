@@ -113,7 +113,6 @@ function LeftSideBar() {
       >
         <CreateContactForm
           handleClose={() => setCreateContactModalIsOpen(false)}
-          handleRefreshItems={refresh}
         ></CreateContactForm>
       </BaseModal>
     </div>
