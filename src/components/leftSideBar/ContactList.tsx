@@ -1,8 +1,17 @@
 import ContactItem from "./ContactItem";
-import { useContacts } from "../../features/hooks/useContacts";
+import { useContacts } from "../../features/contact/useContacts";
+import { useEffect } from "react";
 function ContactList() {
-const { contacts, loading, refresh, deleteContact } = useContacts();
-console.log("Contactlist rendered :", contacts);
+  const { contacts, loading, status, refresh, deleteContact } = useContacts();
+
+ useEffect(() => {
+    if (status === "idle") {
+      refresh();
+    }
+  }, [status, refresh]);
+
+
+  
   return (
     <div className="">
       {loading && <div className="flex justify-center py-5">Loading...</div>}

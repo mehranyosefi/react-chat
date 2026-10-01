@@ -1,19 +1,19 @@
 import { useRef, useState, FormEvent } from "react";
-import { createContact } from "../../services/contact/contact.api";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import BaseButton from "../base/BaseButton";
 import BaseInput from "../base/BaseInput";
 import { ApiError } from "../../features/api/apiClient.type";
+import { useContacts } from "../../features/contact/useContacts";
 
 function CreateContactForm(props: {
   handleClose: () => void;
-  handleRefreshItems?: () => void;
 }) {
-  const { handleClose, handleRefreshItems } = props;
+  const { handleClose } = props;
   const formModel = useRef(null);
   useOutsideClick(formModel, () => handleClose());
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string | null>(null);
+  const { createContact } = useContacts()
 
   async function handleCreateContact(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,8 +24,8 @@ function CreateContactForm(props: {
     const email = String(formData.get("email") ?? "");
 
     try {
-      await createContact({ name, email });
-      handleRefreshItems?.();
+      debugger
+      const res = await createContact({ name, email });
       handleClose();
     } catch (err) {
       const apiError = err as ApiError;
