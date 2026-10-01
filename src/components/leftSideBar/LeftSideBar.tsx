@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { supabase } from "../../services/supbase";
 import BaseButton from "../base/BaseButton";
-import { useContacts } from "../../features/hooks/useContacts";
+import { useContacts } from "../../features/contact/useContacts";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { popTab, pushTab } from "../../features/tab/tabSlice";
