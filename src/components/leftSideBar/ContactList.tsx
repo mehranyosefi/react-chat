@@ -1,8 +1,8 @@
 import ContactItem from "./ContactItem";
-import { Contact } from "../../services/contact/contact.type";
-
-function ContactList({contacts, loading, onDelete , handleRefreshItem}: { contacts: Contact[]; loading: boolean; onDelete: (id: string) => void; handleRefreshItem: () => void }) {
-
+import { useContacts } from "../../features/hooks/useContacts";
+function ContactList() {
+const { contacts, loading, refresh, deleteContact } = useContacts();
+console.log("Contactlist rendered :", contacts);
   return (
     <div className="">
       {loading && <div className="flex justify-center py-5">Loading...</div>}
@@ -17,8 +17,8 @@ function ContactList({contacts, loading, onDelete , handleRefreshItem}: { contac
                   contactId={contact.contact._id}
                   createdAt={contact.createdAt}
                   isLast={index === contacts.length - 1}
-                  onDelete={onDelete}
-                  handleRefreshItem={handleRefreshItem}
+                  onDelete={deleteContact}
+                  handleRefreshItem={refresh}
                 />
               </li>
             );

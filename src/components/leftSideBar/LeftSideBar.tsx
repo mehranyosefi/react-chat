@@ -1,14 +1,15 @@
-import { useRef, useState, lazy } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { supabase } from "../../services/supbase";
 import BaseButton from "../base/BaseButton";
 import { useContacts } from "../../features/hooks/useContacts";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../../store";
+import { popTab, pushTab } from "../../features/tab/tabSlice";
 import Tabs from "../tabs/Tabs";
 import CreateContactForm from "./CreateContactForm";
 import { BaseModal } from "../base/modal/BaseModal";
-const ContactList = lazy(() => import("./ContactList"));
-const ConversationList = lazy(() => import("./ConversationList"));
 
 function LeftSideBar() {
   const navigate = useNavigate();
@@ -17,27 +18,9 @@ function LeftSideBar() {
   const optionMenuRef = useRef<null>(null);
   const [createContactModalIsOpen, setCreateContactModalIsOpen] =
     useState(false);
-  const { contacts, loading, refresh, deleteContact } = useContacts();
-  const [activeTabId, setActiveTabId] = useState<string>("conversations");
-
-  const tabs = [
-    {
-      id: "conversations",
-      component: ConversationList,
-      index: 0,
-    },
-    {
-      id: "contacts",
-      component: ContactList,
-      props: {
-        contacts,
-        loading,
-        onDelete: deleteContact,
-        handleRefreshItem: refresh,
-      },
-      index: 1,
-    },
-  ];
+  const { refresh } = useContacts();
+  const dispatch = useDispatch<AppDispatch>();
+  const activeTabId = useSelector((state: RootState) => state.tab.activeTabId);
 
   useOutsideClick(optionMenuRef, () => setShowOptionMenu(false));
   async function handleLogOut() {
@@ -55,7 +38,7 @@ function LeftSideBar() {
         <div className="flex items-center p-3 gap-x-4">
           {activeTabId === "contacts" ? (
             <BaseButton
-              emitOnClick={() => setActiveTabId("conversations")}
+              emitOnClick={() => dispatch(popTab())}
               className="size-10 flex items-center justify-center text-gray-300 transition-colors duration-300 hover:bg-gray-500"
               paddingX="0"
               paddingY="0"
@@ -78,7 +61,9 @@ function LeftSideBar() {
                 <div className="menu-option absolute left-10 top-14 rounded-xl bg-gray-900 p-5">
                   <ul className="list-none">
                     <li>
-                      <BaseButton emitOnClick={handleLogOut}>logLout</BaseButton>
+                      <BaseButton emitOnClick={handleLogOut}>
+                        logLout
+                      </BaseButton>
                     </li>
                   </ul>
                 </div>
@@ -100,12 +85,12 @@ function LeftSideBar() {
           </div>
         </div>
       </div>
-      <Tabs tabs={tabs} activeTabId={activeTabId} />
-      <button
+      <Tabs />
+      <BaseButton
         className="btn__action absolute right-5 bottom-5 flex items-center justify-center shadow"
-        onClick={() => {
+        emitOnClick={() => {
           if (activeTabId === "conversations") {
-            setActiveTabId("contacts");
+            dispatch(pushTab("contacts"));
           } else if (activeTabId === "contacts") {
             setCreateContactModalIsOpen(true);
           }
@@ -118,7 +103,7 @@ function LeftSideBar() {
         ) : (
           <span className="text-3xl">+</span>
         )}
-      </button>
+      </BaseButton>
 
       <BaseModal
         isOpen={createContactModalIsOpen}

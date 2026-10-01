@@ -1,10 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../../store";
+import { setContacts, setLoading } from "../contact/contactSlice";
 import { getContacts, deleteContact } from "../../services/contact/contact.api";
-import { Contact } from "../../services/contact/contact.type";
+
 
 export function useContacts() {
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch<AppDispatch>();
+
+const contacts = useSelector(
+  (state: RootState) => state.contact.contacts
+);
+
+const loading = useSelector(
+  (state: RootState) => state.contact.loading
+);
 
   useEffect(() => {
     getContactsList();
@@ -12,12 +22,15 @@ export function useContacts() {
 
   async function getContactsList() {
     try {
+      console.log("refresh contact called");
       const res = await getContacts();
-      setContacts(res.data);
+      console.log("Contacts fetched:", res.data);
+      dispatch(setContacts(res.data));
+      console.log("Contacts state updated:", res.data);
     } catch (error) {
       console.error("Error fetching contacts:", error);
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   }
 
