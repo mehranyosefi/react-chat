@@ -36,7 +36,6 @@ export interface ContactProps
   createdAt : string;
   onDelete: (id:string) => void;
   isLast: boolean;
-  handleRefreshItem: ()=>void;
 }
 
 export interface MessageType {
@@ -51,5 +50,4 @@ export interface EditContactFormProps {
   id: string;
   currentName: string;
   handleClose: () => void;
-  handleRefreshItems: () => void;
 }

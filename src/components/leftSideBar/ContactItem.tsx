@@ -6,7 +6,7 @@ import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { BaseModal } from "../base/modal/BaseModal";
 import EditContactForm from "../leftSideBar/EditContactForm"
 export default function ContactItem(props: ContactProps) {
-  const { id, name, contactId, createdAt, onDelete, isLast , handleRefreshItem } = props;
+  const { id, name, contactId, createdAt, onDelete, isLast } = props;
   const [showMenu, setShowMenu] = useState(false);
   const [editContactModalIsOpen, setEditContactModalIsOpen] = useState(false)
   const menuRef = useRef(null);
@@ -81,7 +81,6 @@ export default function ContactItem(props: ContactProps) {
         id={id}
         currentName={name}
         handleClose={() => setEditContactModalIsOpen(false)}
-        handleRefreshItems={handleRefreshItem}
       />
     </BaseModal>
     </>

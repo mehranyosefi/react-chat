@@ -2,7 +2,13 @@
 import { useCallback } from "react";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "../../store";
-import { getContactsThunk, createContactThunk, updateContactThunk, deleteContactThunk } from "./contactSlice";
+import {
+  getContactsThunk,
+  createContactThunk,
+  updateContactThunk,
+  deleteContactThunk,
+} from "./contactSlice";
+import type { CreateContactInput, UpdateContactInput } from "./index.type";
 
 const useAppDispatch = () => useDispatch<AppDispatch>();
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
@@ -15,26 +21,25 @@ export function useContacts() {
     (force: boolean = false) => {
       return dispatch(getContactsThunk({ force }));
     },
-    [dispatch]
+    [dispatch],
   );
-    const createContact = useCallback(
-    (data: { name: string; email: string }) =>
+  const createContact = useCallback(
+    (data: CreateContactInput) =>
       dispatch(createContactThunk(data)).unwrap(),
-    [dispatch]
+    [dispatch],
   );
 
   const updateContact = useCallback(
-    (id: string, data: { name: string; email: string }) =>
+    (id: string, data: UpdateContactInput) =>
       dispatch(updateContactThunk({ id, data })).unwrap(),
-    [dispatch]
+    [dispatch],
   );
-
 
   const deleteContact = useCallback(
     (id: string) => {
       return dispatch(deleteContactThunk(id));
     },
-    [dispatch]
+    [dispatch],
   );
 
   return {
@@ -46,6 +51,6 @@ export function useContacts() {
     refresh,
     createContact,
     updateContact,
-    deleteContact
+    deleteContact,
   };
 }

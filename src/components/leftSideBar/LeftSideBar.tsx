@@ -3,10 +3,10 @@ import { useNavigate } from "react-router";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { supabase } from "../../services/supbase";
 import BaseButton from "../base/BaseButton";
-import { useContacts } from "../../features/contact/useContacts";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { popTab, pushTab } from "../../features/tab/tabSlice";
+import { resetContacts } from "../../features/contact/contactSlice";
 import Tabs from "../tabs/Tabs";
 import CreateContactForm from "./CreateContactForm";
 import { BaseModal } from "../base/modal/BaseModal";
@@ -18,7 +18,6 @@ function LeftSideBar() {
   const optionMenuRef = useRef<null>(null);
   const [createContactModalIsOpen, setCreateContactModalIsOpen] =
     useState(false);
-  const { refresh } = useContacts();
   const dispatch = useDispatch<AppDispatch>();
   const activeTabId = useSelector((state: RootState) => state.tab.activeTabId);
 
@@ -28,6 +27,9 @@ function LeftSideBar() {
     if (!error) {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
+
+      dispatch(resetContacts());
+
       navigate("/login");
     }
   }
