@@ -7,7 +7,11 @@ import {
   updateContact,
 } from "../../services/contact/contact.api";
 import type { RootState } from "../../store";
-import { ContactInput, ContactState } from "./index.type";
+import {
+  CreateContactInput,
+  UpdateContactInput,
+  ContactState,
+} from "./index.type";
 import { Contact } from "../../services/contact/contact.type";
 
 const initialState: ContactState = {
@@ -58,7 +62,7 @@ export const getContactsThunk = createAsyncThunk<
 );
 export const createContactThunk = createAsyncThunk<
   Contact,
-  ContactInput,
+  CreateContactInput,
   { rejectValue: string }
 >("contact/createContact", async (data, { rejectWithValue }) => {
   try {
@@ -82,7 +86,7 @@ export const deleteContactThunk = createAsyncThunk(
 );
 export const updateContactThunk = createAsyncThunk<
   Contact,
-  { id: string; data: ContactInput },
+  { id: string; data: UpdateContactInput  },
   { rejectValue: string }
 >("contact/updateContact", async ({ id, data }, { rejectWithValue }) => {
   try {
@@ -96,7 +100,19 @@ export const updateContactThunk = createAsyncThunk<
 const contactSlice = createSlice({
   name: "contact",
   initialState,
-  reducers: {},
+  reducers: {
+    resetContacts(state) {
+      state.contacts = [];
+      state.status = "idle";
+      state.error = null;
+
+      state.createStatus = "idle";
+      state.createError = null;
+
+      state.updateStatus = "idle";
+      state.updateError = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       //Fetch
@@ -138,7 +154,7 @@ const contactSlice = createSlice({
         state.updateStatus = "succeeded";
 
         const index = state.contacts.findIndex(
-          (item) => item._id === action.payload._id
+          (item) => item._id === action.payload._id,
         );
 
         if (index !== -1) {
@@ -163,4 +179,5 @@ const contactSlice = createSlice({
   },
 });
 
+export const { resetContacts } = contactSlice.actions;
 export default contactSlice.reducer;

@@ -9,7 +9,11 @@ export interface ContactState {
   updateStatus: RequestStatus;
   updateError: string | null;
 }
-export type ContactInput = {
+export type CreateContactInput  = {
   name: string;
   email: string;
+};
+
+export type UpdateContactInput = {
+  name: string;
 };

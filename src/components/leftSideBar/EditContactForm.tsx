@@ -1,5 +1,5 @@
 import { FormEvent, useRef, useState } from "react";
-import { updateContact } from "../../services/contact/contact.api";
+import { useContacts } from "../../features/contact/useContacts";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 import { EditContactFormProps } from "../../types/components";
 import BaseButton from "../base/BaseButton";
@@ -10,9 +10,9 @@ function EditContactForm(props: EditContactFormProps) {
     id,
     currentName,
     handleClose,
-    handleRefreshItems,
   } = props;
 
+  const { updateContact } = useContacts();
   const formModel = useRef(null);
   const [loading, setLoading] = useState(false);
 
@@ -27,8 +27,6 @@ function EditContactForm(props: EditContactFormProps) {
 
     try {
       await updateContact(id, { name });
-
-      handleRefreshItems();
       handleClose();
     } catch (error) {
       console.error("Error updating contact:", error);
