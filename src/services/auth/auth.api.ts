@@ -15,3 +15,10 @@ export function signup(payload: SignupPayload) {
         body: payload,
     });
 }
+
+export function logout() {
+    return apiClient("/logout", {
+        method: "POST",
+        authorizationRequired: true,
+    });
+}
