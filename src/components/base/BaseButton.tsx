@@ -2,7 +2,14 @@ import { useNavigate } from "react-router"; // Use useNavigate for client-side n
 import { ReactNode } from "react";
 
 // 1. Define supported color variants
-export type ButtonVariant = "primary" | "secondary" | "danger" | "success" | "outline" | "none";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "danger"
+  | "success"
+  | "outline"
+  | "none"
+  | "main";
 export interface BaseButtonProps {
   type?: "button" | "submit" | "reset";
   isLoading?: boolean;
@@ -15,7 +22,15 @@ export interface BaseButtonProps {
   paddingY?: string;
   paddingX?: string;
   variant?: ButtonVariant;
-  rounded?: "rounded-none" | "rounded-sm" | "rounded-md" | "rounded-lg" | "rounded-xl" | "rounded-2xl" | "rounded-3xl" | "rounded-full";
+  rounded?:
+    | "rounded-none"
+    | "rounded-sm"
+    | "rounded-md"
+    | "rounded-lg"
+    | "rounded-xl"
+    | "rounded-2xl"
+    | "rounded-3xl"
+    | "rounded-full";
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -23,7 +38,8 @@ const variantClasses: Record<ButtonVariant, string> = {
   secondary: "bg-zinc-700 hover:bg-zinc-800 text-white",
   danger: "bg-red-600 hover:bg-red-700 text-white",
   success: "bg-emerald-600 hover:bg-emerald-700 text-white",
-  outline: "bg-transparent border border-zinc-300 hover:bg-purple-500 text-white",
+  outline:"bg-transparent border border-zinc-300 hover:bg-purple-500 text-white",
+  main: "bg-violet-600 hover:bg-violet-500 text-white",
   none: "",
 };
 
@@ -59,7 +75,9 @@ function BaseButton({
     cursor-pointer transition-colors duration-300 text-sm font-medium
     disabled:opacity-60 disabled:cursor-not-allowed
     ${className}
-  `.trim().replace(/\s+/g, " ");
+  `
+    .trim()
+    .replace(/\s+/g, " ");
 
   return (
     <button

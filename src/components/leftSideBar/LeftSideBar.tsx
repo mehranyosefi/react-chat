@@ -96,6 +96,10 @@ function LeftSideBar() {
       <Tabs />
       <BaseButton
         className="btn__action absolute right-5 bottom-5 flex items-center justify-center shadow"
+        paddingX="0"
+        paddingY="0"
+        variant="main"
+        rounded="rounded-full"
         emitOnClick={() => {
           if (activeTabId === "conversations") {
             dispatch(pushTab("contacts"));
