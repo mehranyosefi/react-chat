@@ -80,12 +80,7 @@ function BaseButton({
     .replace(/\s+/g, " ");
 
   return (
-    <button
-      className={buttonClassName}
-      type={type}
-      onClick={handleClick}
-      disabled={isLoading}
-    >
+    <button className={buttonClassName} type={type} onClick={handleClick} disabled={isLoading}>
       {isLoading ? (
         <div className="loader">Loading...</div>
       ) : (
