@@ -15,7 +15,15 @@ export interface BaseButtonProps {
   paddingY?: string;
   paddingX?: string;
   variant?: ButtonVariant;
-  rounded?: "rounded-none" | "rounded-sm" | "rounded-md" | "rounded-lg" | "rounded-xl" | "rounded-2xl" | "rounded-3xl" | "rounded-full";
+  rounded?:
+    | "rounded-none"
+    | "rounded-sm"
+    | "rounded-md"
+    | "rounded-lg"
+    | "rounded-xl"
+    | "rounded-2xl"
+    | "rounded-3xl"
+    | "rounded-full";
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -59,15 +67,12 @@ function BaseButton({
     cursor-pointer transition-colors duration-300 text-sm font-medium
     disabled:opacity-60 disabled:cursor-not-allowed
     ${className}
-  `.trim().replace(/\s+/g, " ");
+  `
+    .trim()
+    .replace(/\s+/g, " ");
 
   return (
-    <button
-      className={buttonClassName}
-      type={type}
-      onClick={handleClick}
-      disabled={isLoading}
-    >
+    <button className={buttonClassName} type={type} onClick={handleClick} disabled={isLoading}>
       {isLoading ? (
         <div className="loader">Loading...</div>
       ) : (

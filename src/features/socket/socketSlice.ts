@@ -1,12 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { socket } from "../../socket";
 import { SocketState } from "./index.type";
 
 const initialState: SocketState = {
   connected: false,
   connecting: false,
   error: null,
-  onlineUsers: [],
 };
 
 
@@ -32,9 +30,6 @@ const socketSlice = createSlice({
             state.connecting = false
             state.error = action.payload
         },
-        setOnlineUsers(state, action: PayloadAction<string[]>) {
-            state.onlineUsers = action.payload
-        },
     }
 })
 
@@ -43,7 +38,6 @@ export const {
   connected,
   disconnected,
   connectionError,
-  setOnlineUsers,
 } = socketSlice.actions;
 
 export default socketSlice.reducer
