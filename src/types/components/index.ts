@@ -28,13 +28,14 @@ export interface BaseButtonProps
   emitOnClik?: () => void;
 }
 
-export interface CahtItemProps
+export interface ContactProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+ id: string
   name: string;
-  username: string;
-  created_at: string;
-  children?: ReactNode;
-  className?: string;
+  contactId: string;
+  createdAt : string;
+  onDelete: (id:string) => void;
+  isLast: boolean;
 }
 
 export interface MessageType {
@@ -43,4 +44,10 @@ export interface MessageType {
   content: string;
   created_at: string;
   updated_at: string | null;
+}
+
+export interface EditContactFormProps {
+  id: string;
+  currentName: string;
+  handleClose: () => void;
 }

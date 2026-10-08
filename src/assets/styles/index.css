@@ -41,11 +41,17 @@
      disabled:opacity-70 disabled:hover:bg-gray-900/80 disabled:text-purple-500 disabled:cursor-auto;
   }
   .btn__outline {
-    @apply !bg-transparent outline outline-gray-400 hover:!bg-purple-500;
+    @apply bg-transparent outline outline-gray-400 hover:!bg-purple-500;
   }
   .transition-fade {
     animation: fade 0.2s;
     animation-fill-mode: both;
+  }
+  .animation-slide-left{
+    animation: slide-left 0.2s ease-out
+  }
+  .animation-slide-right{
+    animation: slide-right 0.2s ease-out
   }
   .text-input-model__input {
     @apply grow px-2;
@@ -80,5 +86,23 @@
   }
   to {
     opacity: 100;
+  }
+}
+
+@keyframes slide-left {
+  from{
+    transform: translateX(100%);
+  }
+  to{
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-right {
+  from{
+    transform: translateX(-100%);
+  }
+  to{
+    transform: translateX(0);
   }
 }

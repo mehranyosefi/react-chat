@@ -52,8 +52,8 @@ function ChatRoom() {
 
     }
     return (
-        <div className="flex flex-col justify-between h-full">
-            <div className="flex items-center justify-between px-5 py-3 bg-gray-900/80 shadow-md">
+        <div className="flex flex-col justify-between h-full md:px-24">
+            <div className="flex items-center justify-between px-5 py-2 rounded-4xl bg-gray-800">
                 <div className="flex gap-x-4">
                     <img className="size-12 rounded-full" src="" alt="" />
                     <div className="flex flex-col gap-y-2">
@@ -78,8 +78,8 @@ function ChatRoom() {
                     return <div key={message.id}>{message.content}</div>
                 })}
             </div>
-            <div className="mx-auto">
-                <TextInputModel classes="w-[30rem]" emitValue={handleSendMessage}></TextInputModel>
+            <div className="mx-auto w-full">
+                <TextInputModel classes="w-full py-2" emitValue={handleSendMessage}></TextInputModel>
             </div>
         </div>
     );

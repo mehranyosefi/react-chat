@@ -4,8 +4,9 @@ import { Link, Navigate, useNavigate } from "react-router";
 import BaseButton from "../components/base/BaseButton";
 import BaseInput from "../components/base/BaseInput";
 import { login } from "../services/auth/auth.api";
-import { getAccessToken, setTokens } from "../features/auth/tokenStorage";
+import { getAccessToken, setTokens } from "../utility/auth/tokenStorage";
 import { setUserInfo } from "../features/user/userSlice";
+import { ApiError } from "../features/api/apiClient.type";
 
 function Login() {
     const access_token = getAccessToken()
@@ -39,11 +40,8 @@ function Login() {
             );
             navigate("/", { replace: true });
         } catch (error) {
-            if (error.status === 401) {
-                setErrors("Invalid email or password.");
-            } else {
-                setErrors("An error occurred. Please try again.");
-            }
+            const apiError = error as ApiError;
+            setErrors(apiError.message);
         } finally {
             setLoading(false);
         }
@@ -55,7 +53,7 @@ function Login() {
 
     return (
         <div className="flex items-center justify-center h-screen">
-            <div className="rounded-xl p-10 bg-gray-900/90">
+            <div className="rounded-xl p-5 md:p-10 bg-gray-900/90">
                 <h1 className="font-semibold text-xl">
                     Your welcome
                 </h1>
@@ -84,7 +82,7 @@ function Login() {
 
                     <BaseButton
                         type="submit"
-                        className="btn__outline w-full"
+                        variant="outline"
                         isLoading={loading}
                     >
                         SignIn

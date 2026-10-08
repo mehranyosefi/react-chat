@@ -1,12 +1,10 @@
-import { Provider } from 'react-redux';
 import { RouterProvider } from "react-router";
 import router from "./route";
-import { store } from "./store";
+import { useSocket } from './features/socket/useSocket';
 
 function App() {
-  return <Provider store={store}>
-    <RouterProvider router={router}></RouterProvider>
-  </Provider>
+  useSocket()
+  return <RouterProvider router={router} />;
 }
 
 export default App;

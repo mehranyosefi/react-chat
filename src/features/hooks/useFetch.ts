@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   apiClient,
@@ -16,9 +11,7 @@ type UseFetchReturn<T> = {
   loading: boolean;
   error: ApiError | Error | null;
 
-  fetchData: (
-    config?: ApiRequestConfig,
-  ) => Promise<{
+  fetchData: (config?: ApiRequestConfig) => Promise<{
     data: T | null;
     error: ApiError | Error | null;
   }>;
@@ -29,19 +22,13 @@ export function useFetch<T = unknown>(
   defaultConfig?: ApiRequestConfig,
   runImmediately = true,
 ): UseFetchReturn<T> {
-  const [data, setData] =
-    useState<T | null>(null);
+  const [data, setData] = useState<T | null>(null);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [error, setError] =
-    useState<
-      ApiError | Error | null
-    >(null);
+  const [error, setError] = useState<ApiError | Error | null>(null);
 
-  const mountedRef =
-    useRef(true);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -52,23 +39,17 @@ export function useFetch<T = unknown>(
   }, []);
 
   const fetchData = useCallback(
-    async (
-      config?: ApiRequestConfig,
-    ) => {
+    async (config?: ApiRequestConfig) => {
       if (mountedRef.current) {
         setLoading(true);
         setError(null);
       }
 
       try {
-        const result =
-          await apiClient<T>(
-            url,
-            {
-              ...defaultConfig,
-              ...config,
-            },
-          );
+        const result = await apiClient<T>(url, {
+          ...defaultConfig,
+          ...config,
+        });
 
         if (mountedRef.current) {
           setData(result);
@@ -81,11 +62,7 @@ export function useFetch<T = unknown>(
         };
       } catch (err) {
         const apiError =
-          err instanceof Error
-            ? err
-            : new Error(
-                "Unknown error",
-              );
+          err instanceof Error ? err : new Error("Unknown error");
 
         if (mountedRef.current) {
           setError(apiError);
@@ -108,10 +85,7 @@ export function useFetch<T = unknown>(
     if (runImmediately) {
       fetchData();
     }
-  }, [
-    fetchData,
-    runImmediately,
-  ]);
+  }, [fetchData, runImmediately]);
 
   return {
     data,
