@@ -2,8 +2,8 @@ import { Suspense, lazy } from "react";
 import { TabLoaderProps } from "./tabs.type";
 import Loader from "../base/Loader";
 
-const ContactList = lazy(() => import("../leftSideBar/ContactList"));
-const ConversationList = lazy(() => import("../leftSideBar/ConversationList"));
+const ContactList = lazy(() => import("../contact/ContactList"));
+const ConversationList = lazy(() => import("../conversation/ConversationList"));
 
 function TabLoader({ component }: TabLoaderProps) {
   let Component;

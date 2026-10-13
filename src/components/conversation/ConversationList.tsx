@@ -2,13 +2,13 @@ import { useConversations } from "../../features/conversation/useConversation";
 import { useEffect } from "react";
 
 function ConversationList() {
-  const { conversations, loading, error,status, refresh } = useConversations();
+  const { conversations, loading, error,status, getConversations } = useConversations();
 
   useEffect(() => {
     if (status === "idle") {
-      refresh();
+      getConversations();
     }
-  }, [status, refresh]);
+  }, [status, getConversations]);
 
 
   return(

@@ -16,7 +16,7 @@ export function useConversations() {
     (state) => state.conversation
   );
 
-  const refresh = useCallback(
+  const getConversations = useCallback(
     (force: boolean = false) => {
       return dispatch(getConversationsThunk({ force }));
     },
@@ -39,7 +39,7 @@ export function useConversations() {
     loading: status === "loading",
     isIdle: status === "idle",
     error,
-    refresh,
+    getConversations,
     createConversation,
     deleteConversation,
     createStatus,

@@ -5,6 +5,7 @@ export type ApiRequestConfig = {
   headers?: HeadersInit;
   method?: RequestInit["method"];
   authorizationRequired?: boolean;
+  signal?: boolean | AbortSignal
 };
 export type ApiError = {
   status: number;

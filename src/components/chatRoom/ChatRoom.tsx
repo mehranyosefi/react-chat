@@ -3,11 +3,16 @@ import { useParams } from "react-router";
 import { supabase } from "../../services/supbase";
 import { MessageType } from "../../types/components";
 import TextInputModel from "./TextInputModel";
+import { getContactById } from "../../services/contact/contact.api";
+import { Contact } from "../../services/contact/contact.type";
+import { Conversation } from "../../services/conversation/conversation.type";
+import { getConversationById, getConversations } from "../../services/conversation/conversation.api";
 
 function ChatRoom() {
-    const [chatInfo, setChatInfo] = useState()
+    const [contact, setContact] = useState<Contact>()
+    const [conversation, setConversation] = useState<Conversation>()
     const [messages, updateMessages] = useState<Array<MessageType>>([]);
-    const { username } = useParams()
+    const { userId, conversationId } = useParams()
     // const { email } = useSelector((store) => store.user)
 
     // useEffect(() => {
@@ -16,7 +21,7 @@ function ChatRoom() {
     //         fetchMessages()
     //     ])
     //     const messageListener = supabase
-    //         .channel(username!.toString())
+    //         .channel(userId!.toString())
     //         .on(
     //             "postgres_changes",
     //             { event: "INSERT", schema: "public", table: "message" },
@@ -27,37 +32,74 @@ function ChatRoom() {
     //         .subscribe();
 
     //     return () => messageListener.unsubscribe();
-    // }, [username])
+    // }, [userId])
+    
+    //fetch contact
+    useEffect(()=> {
+        const controller = new AbortController()
+        const loadData = async() => {
+            const { data } = await getContactById(userId!, { signal: controller.signal })
+            setContact(data)
+        }
+        if(userId) loadData()
 
-    async function fetchChat() {
-        const { data, error } = await supabase
-            .from('chat')
-            .select()
-            .eq('username', username).limit(1)
-            .single()
-        if (!error && data) setChatInfo(data)
-    }
+        return ()=>{
+            controller.abort()
+        }
+
+    }, [userId])
+
+    //fetch conversation
+    useEffect(()=> {
+        const controller = new AbortController()
+        const loadData = async() => {
+            const { data } = await getConversationById(conversationId!, { signal: controller.signal })
+            setConversation(data)
+        }
+        if(conversationId) loadData()
+
+        return ()=>{
+            controller.abort()
+        }
+    }, [conversationId])
+
+    
     async function fetchMessages() {
         const { data: messageData, error: errorData } = await supabase
             .from('message')
             .select()
-            .eq('chat_username', username)
+            .eq('chat_userId', userId)
         console.log(messageData)
         updateMessages(messageData)
     }
-    async function handleSendMessage(val: string) {
-        const { data, error } = await supabase
-            .from('message')
-            .insert({ content: val, chat_username: username })
+    async function handleSendMessage(input: string) {
+        debugger
+        //check if conversation exists, if not create one
+        if(!conversation?._id) {
+            createConversation()
+        }
+
+        //set message with conversation id and user id on ws
+        
 
     }
+
+    function sendMessage(input: string) {
+
+    }
+    
+    function createConversation() {
+
+    }
+
+
     return (
         <div className="flex flex-col justify-between h-full md:px-24">
             <div className="flex items-center justify-between px-5 py-2 rounded-4xl bg-gray-800">
                 <div className="flex gap-x-4">
                     <img className="size-12 rounded-full" src="" alt="" />
                     <div className="flex flex-col gap-y-2">
-                        <span>{chatInfo?.name}</span>
+                        <span>{contact?.name}</span>
                         <span className="text-xs">state</span>
                     </div>
                 </div>

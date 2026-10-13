@@ -14,6 +14,11 @@ const router = createBrowserRouter([
   {
     element: <AppLayout />,
     loader: layoutLoader,
+    shouldRevalidate: ({ currentUrl, nextUrl,  defaultShouldRevalidate})=>{
+      //Prevent from rerendering of AppLayout
+      if(currentUrl.pathname.startsWith('/') && nextUrl.pathname.startsWith('/')) return false
+      return defaultShouldRevalidate
+    },
     errorElement: <Error />,
     children: [
       {
@@ -22,7 +27,11 @@ const router = createBrowserRouter([
         errorElement: <Error />,
       },
       {
-        path: "/:username",
+        path: "/:userId",
+        element: <Index />,
+      },
+      {
+        path: "/:conversationId",
         element: <Index />,
       },
     ],

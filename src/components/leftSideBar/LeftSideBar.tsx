@@ -9,7 +9,7 @@ import { RootState, AppDispatch } from "../../store";
 import { popTab, pushTab } from "../../features/tab/tabSlice";
 import { resetContacts } from "../../features/contact/contactSlice";
 import Tabs from "../tabs/Tabs";
-import CreateContactForm from "./CreateContactForm";
+import CreateContactForm from "../contact/CreateContactForm";
 import { BaseModal } from "../base/modal/BaseModal";
 import { ApiError } from "../../features/api/apiClient.type";
 function LeftSideBar() {
@@ -25,7 +25,8 @@ function LeftSideBar() {
   useOutsideClick(optionMenuRef, () => setShowOptionMenu(false));
   async function handleLogOut() {
     try {
-      await logout();
+      //TODO handle logout service
+      // await logout();
 
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");

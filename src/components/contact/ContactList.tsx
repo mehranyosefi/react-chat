@@ -2,13 +2,13 @@ import ContactItem from "./ContactItem";
 import { useContacts } from "../../features/contact/useContacts";
 import { useEffect } from "react";
 function ContactList() {
-  const { contacts, loading, status, refresh, deleteContact } = useContacts();
+  const { contacts, loading, status, getContacts, deleteContact } = useContacts();
 
  useEffect(() => {
     if (status === "idle") {
-      refresh();
+      getContacts();
     }
-  }, [status, refresh]);
+  }, [status, getContacts]);
 
 
   
@@ -27,7 +27,6 @@ function ContactList() {
                   createdAt={contact.createdAt}
                   isLast={index === contacts.length - 1}
                   onDelete={deleteContact}
-                  handleRefreshItem={refresh}
                 />
               </li>
             );
