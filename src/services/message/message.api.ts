@@ -1,9 +1,21 @@
 import { apiClient } from "../../features/api/apiClient";
+import { ApiRequestConfig } from "../../features/api/apiClient.type";
 import {
   MessageResponse,
   CreateMessagePayload,
   UpdateMessagePayload,
+  MessagesResponse,
 } from "./message.type";
+
+export function getMessagesByConversation(
+  conversationId: string,
+  config?: ApiRequestConfig
+): Promise<MessagesResponse> {
+  return apiClient<MessagesResponse>(`messages/conversation/${conversationId}`, {
+    ...config,
+    authorizationRequired: true,
+  });
+}
 
 export function createMessage(
   payload: CreateMessagePayload,

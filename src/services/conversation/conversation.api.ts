@@ -11,7 +11,13 @@ export function getConversations(): Promise<ConversationsResponse> {
   });
 }
 export function getConversationById(conversationId: string, config?: ApiRequestConfig): Promise<ConversationResponse> {
-  return apiClient<ConversationResponse>(`conversation/${ conversationId }`, {
+  return apiClient<ConversationResponse>(`conversations/${ conversationId }`, {
+    ...config,
+    authorizationRequired: true,
+  });
+}
+export function getConversationBycontactId(contactId: string, config?: ApiRequestConfig): Promise<ConversationResponse> {
+  return apiClient<ConversationResponse>(`conversations/get-by-contact-id/${ contactId }`, {
     ...config,
     authorizationRequired: true,
   });

@@ -13,6 +13,10 @@ export type Message = {
 export type MessageResponse = {
   data: Message;
 };
+export type MessagesResponse = {
+  data: Message[];
+};
+
 
 export type CreateMessagePayload = {
   conversationId: string;

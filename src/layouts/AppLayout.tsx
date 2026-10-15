@@ -30,10 +30,10 @@ function AppLayout() {
     }
   }, [data, dispatch]);
 
-  useEffect(()=> {
-    const targetTab = userId ? 'contacts': 'conversations'
-    dispatch(setIntitailTab(targetTab))
-  }, [userId, dispatch])
+  // useEffect(()=> {
+  //   const targetTab = userId ? 'contacts': 'conversations'
+  //   dispatch(setIntitailTab(targetTab))
+  // }, [userId, dispatch])
 
   return (
     <div className="app w-screen h-screen overflow-hidden backdrop-blur-sm bg-black/50">

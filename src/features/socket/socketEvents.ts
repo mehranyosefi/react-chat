@@ -8,10 +8,13 @@ import {
   disconnected,
 } from "./socketSlice";
 
+
 // import { messageReceived } from "../messages/messageSlice";
 
 export function registerSocketEvents(dispatch: AppDispatch) {
 
+  dispatch(connectionStarted())
+  //main event
   const handleConnect = () => {
     dispatch(connected());
     console.log('ws connected successfully')
@@ -22,13 +25,11 @@ export function registerSocketEvents(dispatch: AppDispatch) {
   const handleConnectError = (error: Error) => {
     dispatch(connectionError(error.message));
   };
-  dispatch(connectionStarted())
-  
+
   //main event listeners
   socket.on("connect", handleConnect);
   socket.on("disconnect", handleDisconnect);
   socket.on("connect_error", handleConnectError);
-  
 
 
   return () => {

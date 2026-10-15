@@ -4,6 +4,7 @@ import tabReducer from "./features/tab/tabSlice";
 import contactReducer from "./features/contact/contactSlice"
 import socketReducer from "./features/socket/socketSlice"
 import conversationReducer from "./features/conversation/conversationSlice"
+import messageReducer from "./features/message/messageSlice"
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +12,8 @@ export const store = configureStore({
     tab: tabReducer,
     contact :contactReducer,
     socket: socketReducer,
-    conversation: conversationReducer
+    conversation: conversationReducer,
+    message: messageReducer
   },
   devTools: true,
 });

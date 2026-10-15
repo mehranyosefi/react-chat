@@ -18,7 +18,7 @@ export default function ContactItem(props: ContactProps) {
   return (
     <>
     <div className="flex items-center hover:bg-gray-600/40 rounded-md p-2">
-      <Link to={id} className="flex gap-3 grow">
+      <Link to={contactId} className="flex gap-3 grow">
         <div className="size-16 bg-gray-800 rounded-full flex items-center justify-center">
           { /* TODO use a light package for svg */ }
           <svg className="size-10">
@@ -31,7 +31,7 @@ export default function ContactItem(props: ContactProps) {
             <span className="text-xs pr-2">{toLocale()}</span>
           </div>
           <p className="text-sm truncate max-w-60 overflow-hidden">
-            Lorem ipsum dolor sit amet sfesefgfegdddsss
+            Last seen recently
           </p>
         </div>
       </Link>

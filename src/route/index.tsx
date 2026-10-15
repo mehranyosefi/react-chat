@@ -27,13 +27,9 @@ const router = createBrowserRouter([
         errorElement: <Error />,
       },
       {
-        path: "/:userId",
+        path: "/:contactId",
         element: <Index />,
-      },
-      {
-        path: "/:conversationId",
-        element: <Index />,
-      },
+      }
     ],
   },
   {

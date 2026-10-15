@@ -3,6 +3,7 @@ import {
   getConversations,
   createConversation,
   deleteConversation,
+  getConversationBycontactId,
 } from "../../services/conversation/conversation.api";
 import type { RootState } from "../../store";
 import type { Conversation } from "../../services/conversation/conversation.type";
@@ -51,6 +52,17 @@ export const getConversationsThunk = createAsyncThunk<
       }
       return true;
     },
+  }
+);
+export const getConversationBycontactIdThunk = createAsyncThunk(
+  "conversations/get-conversation-by-id",
+  async (contactId: string, { rejectWithValue }) => {
+    try {
+      const res = await getConversationBycontactId(contactId);
+      return res.data;
+    } catch (error) {
+      rejectWithValue(getErrorMessage(error));
+    }
   }
 );
 
@@ -118,6 +130,11 @@ const conversationSlice = createSlice({
         state.conversations = state.conversations.filter(
           (conversation) => !conversation.participants.includes(action.payload)
         );
+      })
+
+      //fetch conversatin by chat id
+      .addCase(getConversationBycontactIdThunk.fulfilled, (state, action) => {
+        if (action.payload) state.conversations.push(action.payload);
       });
   },
 });

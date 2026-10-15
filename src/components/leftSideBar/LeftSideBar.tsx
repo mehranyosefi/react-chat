@@ -48,7 +48,7 @@ function LeftSideBar() {
           {activeTabId === "contacts" ? (
             <BaseButton
               emitOnClick={() => dispatch(popTab())}
-              className="size-10 flex items-center justify-center text-gray-300 transition-colors duration-300 hover:bg-gray-500"
+              className="size-10 flex items-center justify-center text-gray-300 transition-colors duration-300 hover:bg-gray-600/40"
               paddingX="0"
               paddingY="0"
               variant="none"

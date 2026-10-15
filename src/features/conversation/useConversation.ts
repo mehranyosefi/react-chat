@@ -5,6 +5,7 @@ import {
   getConversationsThunk,
   createConversationThunk,
   deleteConversationThunk,
+  getConversationBycontactIdThunk
 } from "./conversationSlice";
 const useAppDispatch = () => useDispatch<AppDispatch>();
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
@@ -22,6 +23,10 @@ export function useConversations() {
     },
     [dispatch]
   );
+
+  const getConversationByhatId = useCallback((contactId: string)=>{
+    return dispatch(getConversationBycontactIdThunk(contactId))
+  }, [dispatch])
 
   const createConversation = useCallback(
     (participantId: string) => dispatch(createConversationThunk(participantId)).unwrap(),
@@ -42,6 +47,7 @@ export function useConversations() {
     getConversations,
     createConversation,
     deleteConversation,
+    getConversationByhatId,
     createStatus,
     createError,
   };
