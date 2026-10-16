@@ -24,7 +24,6 @@ function CreateContactForm(props: {
     const email = String(formData.get("email") ?? "");
 
     try {
-      debugger
       const res = await createContact({ name, email });
       handleClose();
     } catch (err) {

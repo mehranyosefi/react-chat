@@ -8,6 +8,7 @@ import {
 import type { RootState } from "../../store";
 import type { Conversation } from "../../services/conversation/conversation.type";
 import type { ConversationState } from "./index.type";
+import { emitWithTimeout } from "../socket/socket";
 
 const initialState: ConversationState = {
   conversations: [],
@@ -76,6 +77,41 @@ export const createConversationThunk = createAsyncThunk<
     return res.data;
   } catch (error) {
     return rejectWithValue(getErrorMessage(error));
+  }
+});
+
+export const joinToConversationThunk = createAsyncThunk<
+  string,
+  string,
+  { rejectValue: { message: string } }
+>("conversation/join", async (conversationId, { rejectWithValue }) => {
+  //handle join to conversation via ws
+  try {
+    await emitWithTimeout("conversation:join", {
+      conversationId
+    });
+    return conversationId ;
+  } catch (error) {
+    return rejectWithValue({
+      message: getErrorMessage(error)
+    });
+  }
+});
+export const leaveConversationThunk = createAsyncThunk<
+  string,
+  string,
+  { rejectValue: { message: string } }
+>("conversation/join", async (conversationId, { rejectWithValue }) => {
+  //handle join to conversation via ws
+  try {
+    await emitWithTimeout("conversation:leave", {
+      conversationId
+    });
+    return conversationId ;
+  } catch (error) {
+    return rejectWithValue({
+      message: getErrorMessage(error)
+    });
   }
 });
 

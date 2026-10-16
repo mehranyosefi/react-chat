@@ -4,10 +4,10 @@ import type { Message } from "../../services/message/message.type";
 import type { MessagesState, MessageEntity } from "./index.type";
 import {
   getMessagesByConversation,
-  createMessage,
   updateMessage,
   deleteMessage,
 } from "../../services/message/message.api";
+import { emitWithTimeout } from "../socket/socket";
 
 function getErrorMessage(error: unknown): string {
   const apiError = error as {
@@ -36,13 +36,17 @@ const initialState: MessagesState = {
 /* Fetch messages for a conversation (cached with condition) */
 export const getMessagesThunk = createAsyncThunk<
   { conversationId: string; messages: Message[] },
-  { conversationId: string; force?: boolean },
+  { conversationId: string; force?: boolean; limit?: number },
   { state: RootState; rejectValue: string }
 >(
   "message/getMessagesByConversation",
-  async ({ conversationId }, { rejectWithValue }) => {
+  async ({ conversationId, limit }, { rejectWithValue }) => {
     try {
-      const { data } = await getMessagesByConversation(conversationId);
+      const { data } = await getMessagesByConversation(conversationId, {
+        params: {
+          limit: limit ?? 50,
+        },
+      });
       return { conversationId, messages: data };
     } catch (error) {
       return rejectWithValue(getErrorMessage(error));
@@ -62,24 +66,28 @@ export const getMessagesThunk = createAsyncThunk<
 /**
  * 2) Send message with optimistic UI:
  *    - reducer adds a pending message immediately
- *    - thunk calls API
+ *    - thunk calls ws
  *    - on success replaces optimistic message with server message
  */
 export const sendMessageThunk = createAsyncThunk<
   { conversationId: string; userId: string; serverMessage: Message },
   { conversationId: string; content: string; userId: string },
   { rejectValue: { userId: string; message: string } }
->(
-  "message/sendMessage",
-  async ({ conversationId, content, userId }, { rejectWithValue }) => {
-    try {
-      const res = await createMessage({ conversationId, content });
-      return { conversationId, userId, serverMessage: res.data };
-    } catch (error) {
-      return rejectWithValue({ userId, message: getErrorMessage(error) });
-    }
+>("message/sendMessage", async ({ conversationId, content, userId }, { rejectWithValue }) => {
+  //handle send message with ws
+  try {
+    const serverMessage = await emitWithTimeout<Message>("message:send", {
+      conversationId,
+      content,
+    });
+    return { conversationId, userId, serverMessage };
+  } catch (error) {
+    return rejectWithValue({
+      userId,
+      message: getErrorMessage(error)
+    });
   }
-);
+});
 
 /** Update message */
 export const updateMessageThunk = createAsyncThunk<
@@ -152,6 +160,23 @@ const messageSlice = createSlice({
         return { payload: { conversationId, optimistic } };
       },
     },
+    //Incoming message received from another user via ws
+    receiveMessage: (state, action: PayloadAction<Message>) => {
+      const incoming = action.payload;
+      const conversationId = incoming.conversation;
+
+      if (!state.byConversationId[conversationId]) {
+        state.byConversationId[conversationId] = [];
+      }
+
+      const list = state.byConversationId[conversationId];
+
+      //Avoid duplicate: check if already exists by _id
+      const exists = list.some((m) => m._id === incoming._id);
+      if (!exists) {
+        list.push(incoming);
+      }
+    },
 
     /**
      * If user wants to retry a failed optimistic message, you can remove & resend
@@ -161,9 +186,9 @@ const messageSlice = createSlice({
       action: PayloadAction<{ conversationId: string; userId: string }>
     ) => {
       const { conversationId, userId } = action.payload;
-      state.byConversationId[conversationId] = (state.byConversationId[conversationId] ?? []).filter(
-        (m) => m.userId !== userId
-      );
+      state.byConversationId[conversationId] = (
+        state.byConversationId[conversationId] ?? []
+      ).filter((m) => m.userId !== userId);
       delete state.sendStatusByUserId[userId];
       delete state.sendErrorByUserId[userId];
     },
@@ -188,7 +213,7 @@ const messageSlice = createSlice({
           (action.payload as string) ?? action.error.message ?? "Error fetching messages";
       })
 
-      // Send message
+      // WS Send message fulfilled
       .addCase(sendMessageThunk.fulfilled, (state, action) => {
         const { conversationId, userId, serverMessage } = action.payload;
 
@@ -199,14 +224,15 @@ const messageSlice = createSlice({
         const idx = list.findIndex((m) => m.userId === userId || m._id === userId);
 
         if (idx >= 0) {
-          list[idx] = serverMessage; // replace optimistic
+          list[idx] = serverMessage; // Replace optimistic message
         } else {
-          // fallback if optimistic not found
           list.push(serverMessage);
         }
 
         state.byConversationId[conversationId] = list;
       })
+      
+      // WS Send message rejected / failed
       .addCase(sendMessageThunk.rejected, (state, action) => {
         const payload = action.payload;
         if (!payload) return;
@@ -214,7 +240,6 @@ const messageSlice = createSlice({
         state.sendStatusByUserId[payload.userId] = "failed";
         state.sendErrorByUserId[payload.userId] = payload.message;
 
-        // mark optimistic message as failed
         for (const convId of Object.keys(state.byConversationId)) {
           const list = state.byConversationId[convId] ?? [];
           const msg = list.find((m) => m.userId === payload.userId || m._id === payload.userId);
@@ -262,9 +287,9 @@ const messageSlice = createSlice({
         state.deleteStatusByMessageId[messageId] = "succeeded";
         state.deleteErrorByMessageId[messageId] = null;
 
-        state.byConversationId[conversationId] = (state.byConversationId[conversationId] ?? []).filter(
-          (m) => m._id !== messageId
-        );
+        state.byConversationId[conversationId] = (
+          state.byConversationId[conversationId] ?? []
+        ).filter((m) => m._id !== messageId);
       })
       .addCase(deleteMessageThunk.rejected, (state, action) => {
         const payload = action.payload;
@@ -275,5 +300,5 @@ const messageSlice = createSlice({
   },
 });
 
-export const { addOptimisticMessage, removeMessageByUserId } = messageSlice.actions;
+export const { addOptimisticMessage, removeMessageByUserId, receiveMessage } = messageSlice.actions;
 export default messageSlice.reducer;

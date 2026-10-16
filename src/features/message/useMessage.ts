@@ -22,14 +22,14 @@ export interface SendMessageOptions {
 export function useMessage(conversationId?: string, currentUserId?: string) {
   const dispatch = useAppDispatch();
 
-  // 1. Messages scoped to current conversation (stable reference fallback)
+  //Messages scoped to current conversation (stable reference fallback)
   const messages = useAppSelector((state) =>
     conversationId
       ? (state.message.byConversationId[conversationId] ?? EMPTY_MESSAGES)
       : EMPTY_MESSAGES
   );
 
-  // 2. Fetch statuses
+  //Fetch statuses
   const fetchStatus = useAppSelector((state) =>
     conversationId ? (state.message.fetchStatusByConversationId[conversationId] ?? "idle") : "idle"
   );
@@ -38,23 +38,23 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
     conversationId ? (state.message.fetchErrorByConversationId[conversationId] ?? null) : null
   );
 
-  // 3. Send/Mutation status (if tracked in messageSlice)
-  const isSending = useAppSelector((state) => state.message.isSending ?? false);
+  //Send/Mutation status (if tracked in messageSlice)
+  //const isSending = useAppSelector((state) => state.message.isSending ?? false);
 
   const loading = fetchStatus === "loading";
 
   // 4. Lazy & Dynamic getMessages
   const getMessages = useCallback(
-    (force = false, targetConversationId?: string) => {
+    (force = false, targetConversationId?: string, limit?: number) => {
       const activeConvId = targetConversationId || conversationId;
       if (!activeConvId) return;
 
-      return dispatch(getMessagesThunk({ conversationId: activeConvId, force }));
+      return dispatch(getMessagesThunk({ conversationId: activeConvId, force, limit }));
     },
     [dispatch, conversationId]
   );
 
-  // 5. Lazy & Dynamic sendMessage
+  //Lazy & Dynamic sendMessage
   const sendMessage = useCallback(
     async (content: string, options?: SendMessageOptions) => {
       const activeConvId = options?.conversationId || conversationId;
@@ -64,25 +64,22 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
         throw new Error("Cannot send message: conversationId or activeUserId are required.");
       }
 
-      // 1) Add optimistic message to Redux store
-      const action = dispatch(addOptimisticMessage(activeConvId, content, activeUserId));
+      //Add optimistic message to Redux store
+      // const action = dispatch(addOptimisticMessage(activeConvId, content, activeUserId));
 
-      // Extract resolved sender/userId from payload or fallback to activeUserId
-      const resolvedUserId = action.payload?.optimistic?.userId ?? activeUserId;
-
-      // 2) Dispatch API thunk
+      //Dispatch API thunk
       return dispatch(
         sendMessageThunk({
           conversationId: activeConvId,
           content,
-          userId: resolvedUserId,
+          userId: activeUserId,
         })
       ).unwrap();
     },
     [dispatch, conversationId, currentUserId]
   );
 
-  // 6. Update message
+  //Update message
   const updateMessage = useCallback(
     (messageId: string, content: string) => {
       return dispatch(updateMessageThunk({ messageId, content })).unwrap();
@@ -90,7 +87,7 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
     [dispatch]
   );
 
-  // 7. Remove message with lazy conversationId fallback
+  //Remove message with lazy conversationId fallback
   const removeMessage = useCallback(
     (messageId: string, targetConversationId?: string) => {
       const activeConvId = targetConversationId || conversationId;
@@ -114,7 +111,7 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
       fetchStatus,
       fetchError,
       loading,
-      isSending,
+      // isSending,
       getMessages,
       sendMessage,
       updateMessage,
@@ -125,7 +122,7 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
       fetchStatus,
       fetchError,
       loading,
-      isSending,
+      // isSending,
       getMessages,
       sendMessage,
       updateMessage,

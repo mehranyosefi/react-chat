@@ -11,27 +11,28 @@ import { getUserByID } from "../../services/user/user.api";
 import { User } from "../../services/user/user.type";
 import { TypedUseSelectorHook, useSelector } from "react-redux";
 import type { RootState } from "../../store";
+import { addOptimisticMessage } from "../../features/message/messageSlice";
+import { useConversations } from "../../features/conversation/useConversation";
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 function ChatRoom() {
   const { contactId } = useParams();
   const [contact, setContact] = useState<User>();
   const [conversation, setConversation] = useState<Conversation>();
-
-  // Get current logged-in user (from your Redux auth state)
   const currentUserId = useAppSelector((state) => state?.user?.email);
+  const { joinToConversation, leaveConversation } = useConversations();
+  const isSocketConnected = useAppSelector((state) => state.socket.connected);
 
-  // 1. Pass conversation?._id and currentUserId directly to the hook
+  //TODO return to '/' path if contact or conversation doesnt exist
   const {
     messages,
-    loading: isMessagesLoading, // 'loading' is boolean (fetchStatus === "loading")
+    loading: isMessagesLoading,
     fetchError: messagesError,
     getMessages,
     sendMessage,
-    isSending,
-  } = useMessage(conversation?._id, currentUserId);
+  } = useMessage(conversation?._id, currentUserId || contactId);
 
-  // 2. Fetch or load conversation
+  //Fetch conversation and join to that
   useEffect(() => {
     let isMounted = true;
 
@@ -49,11 +50,26 @@ function ChatRoom() {
     }
 
     return () => {
-      isMounted = false; // clean flag, do NOT call handleFetchData here!
+      isMounted = false;
     };
   }, [contactId]);
 
-  // 3. Fetch contact profile
+  //Join to conversation
+  useEffect(() => {
+    const conversationId = conversation?._id;
+    if (!isSocketConnected || !conversationId) {
+      return;
+    }
+
+    // Join room
+    joinToConversation(conversation._id);
+
+    return () => {
+      leaveConversation(conversationId);
+    };
+  }, [isSocketConnected, conversation?._id, joinToConversation, leaveConversation]);
+
+  //Fetch contact profile - the contact actucally is as user in system
   useEffect(() => {
     let isMounted = true;
     const fetchContact = async () => {
@@ -73,33 +89,32 @@ function ChatRoom() {
     };
   }, [contactId]);
 
-  // 4. Fetch messages once conversation is loaded
+  //Fetch messages once conversation is loaded
   useEffect(() => {
     if (conversation?._id) {
-      getMessages(false, conversation._id);
+      getMessages(false, conversation._id, 20);
     }
   }, [conversation?._id, getMessages]);
 
-  // 5. Send message
+  //Send message
   async function handleSendMessage(input: string) {
-    if (!input.trim() || isSending) return;
+    if (!input.trim()) return;
 
     try {
-      let currentConvId = conversation?._id;
-
-      // Lazy fallback if conversation didn't exist yet
-      if (!currentConvId && contactId) {
-        const { data } = await createConversation(contactId);
+      // check if conversation exist
+      if (!conversation?._id) {
+        const { data } = await createConversation(contactId!);
         setConversation(data);
-        currentConvId = data._id;
+        //Jonin to conversation with ws
+        joinToConversation(data._id);
       }
 
-      if (currentConvId && currentUserId) {
-        await sendMessage(input, {
-          conversationId: currentConvId,
-          currentUserId,
-        });
-      }
+      //Add to Redux state instantly for zero-latency UI
+      // addOptimisticMessage(conversation?._id, input.trim(), contactId!)
+      sendMessage(input, {
+        conversationId: conversation?._id,
+        currentUserId: contactId,
+      });
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -126,53 +141,55 @@ function ChatRoom() {
         </div>
       </div>
 
-      {/* Messages Area */}
-      <div className="grow overflow-y-auto py-4 flex flex-col gap-y-2">
-        {isMessagesLoading && messages.length === 0 && (
-          <div className="text-center text-gray-400 py-4">Loading messages...</div>
-        )}
+      <div className="flex flex-col h-full overflow-hidden">
+        {/* Messages Area */}
+        <div className="grow min-h-0 overflow-y-auto py-4 flex flex-col gap-y-2 px-5">
+          <div className="mt-auto" />
 
-        {messagesError && <div className="text-center text-red-500 py-2">{messagesError}</div>}
+          {isMessagesLoading && messages.length === 0 && (
+            <div className="text-center text-gray-400 py-4">Loading messages...</div>
+          )}
 
-        {!isMessagesLoading && messages.length === 0 && (
-          <div className="text-center text-gray-400 m-auto">
-            No messages yet. Send a message to start!
-          </div>
-        )}
+          {messagesError && <div className="text-center text-red-500 py-2">{messagesError}</div>}
 
-        {/* Message bubbles */}
-        {messages.map((message) => {
-          // Identify sender: can be an ID string or an object depending on backend populate
-          const senderId =
-            typeof message.sender === "object" ? message.sender?._id : message.sender;
-          const isMe = senderId === currentUserId || message.sender !== contactId;
-
-          return (
-            <div
-              key={message._id || message.userId}
-              className={`max-w-[75%] px-4 py-2 rounded-2xl ${
-                isMe
-                  ? "self-end bg-blue-600 text-white rounded-br-none"
-                  : "self-start bg-gray-700 text-white rounded-bl-none"
-              } ${message.pending ? "opacity-60" : "opacity-100"}`}
-            >
-              <p className="text-sm">{message.content}</p>
-              <span className="text-[10px] text-gray-300 block text-right mt-1">
-                {message.createdAt
-                  ? new Date(message.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "sending..."}
-              </span>
+          {!isMessagesLoading && messages.length === 0 && (
+            <div className="text-center text-gray-400 m-auto">
+              No messages yet. Send a message to start!
             </div>
-          );
-        })}
-      </div>
+          )}
 
-      {/* Input Field */}
-      <div className="mx-auto w-full pb-4">
-        <TextInputModel classes="w-full py-2" emitValue={handleSendMessage} />
+          {/* Message bubbles */}
+          {messages.map((message) => {
+            //TODO fix condition on isMe
+            const isMe = message.sender !== contactId;
+
+            return (
+              <div
+                key={message._id }
+                className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+                  isMe
+                    ? "self-end bg-blue-600 text-white rounded-br-none"
+                    : "self-start bg-gray-700 text-white rounded-bl-none"
+                } ${message.pending ? "opacity-60" : "opacity-100"}`}
+              >
+                <p className="text-sm">{message.content}</p>
+                <span className="text-[10px] text-gray-300 block text-right mt-1">
+                  {message.createdAt
+                    ? new Date(message.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "sending..."}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Input Field */}
+        <div className="mx-auto w-full pb-4">
+          <TextInputModel classes="w-full py-2" emitValue={handleSendMessage} />
+        </div>
       </div>
     </div>
   );
