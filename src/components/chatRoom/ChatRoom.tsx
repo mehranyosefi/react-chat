@@ -11,7 +11,6 @@ import { getUserByID } from "../../services/user/user.api";
 import { User } from "../../services/user/user.type";
 import { TypedUseSelectorHook, useSelector } from "react-redux";
 import type { RootState } from "../../store";
-import { addOptimisticMessage } from "../../features/message/messageSlice";
 import { useConversations } from "../../features/conversation/useConversation";
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
@@ -19,7 +18,7 @@ function ChatRoom() {
   const { contactId } = useParams();
   const [contact, setContact] = useState<User>();
   const [conversation, setConversation] = useState<Conversation>();
-  const currentUserId = useAppSelector((state) => state?.user?.email);
+  const currentUserId = useAppSelector((state) => state?.user?.id);
   const { joinToConversation, leaveConversation } = useConversations();
   const isSocketConnected = useAppSelector((state) => state.socket.connected);
 
@@ -30,7 +29,7 @@ function ChatRoom() {
     fetchError: messagesError,
     getMessages,
     sendMessage,
-  } = useMessage(conversation?._id, currentUserId || contactId);
+  } = useMessage(conversation?._id, currentUserId);
 
   //Fetch conversation and join to that
   useEffect(() => {
@@ -92,7 +91,7 @@ function ChatRoom() {
   //Fetch messages once conversation is loaded
   useEffect(() => {
     if (conversation?._id) {
-      getMessages(false, conversation._id, 20);
+      getMessages(false, conversation._id, 100);
     }
   }, [conversation?._id, getMessages]);
 
@@ -108,12 +107,9 @@ function ChatRoom() {
         //Jonin to conversation with ws
         joinToConversation(data._id);
       }
-
-      //Add to Redux state instantly for zero-latency UI
-      // addOptimisticMessage(conversation?._id, input.trim(), contactId!)
       sendMessage(input, {
         conversationId: conversation?._id,
-        currentUserId: contactId,
+        currentUserId: currentUserId,
       });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -159,13 +155,13 @@ function ChatRoom() {
           )}
 
           {/* Message bubbles */}
+          {console.log(messages)}
           {messages.map((message) => {
-            //TODO fix condition on isMe
-            const isMe = message.sender !== contactId;
+            const isMe = message.sender === currentUserId;
 
             return (
               <div
-                key={message._id }
+                key={message._id}
                 className={`max-w-[75%] px-4 py-2 rounded-2xl ${
                   isMe
                     ? "self-end bg-blue-600 text-white rounded-br-none"

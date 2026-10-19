@@ -14,13 +14,13 @@ function AppLayout() {
   const isLoading = navigation.state === "loading";
   const dispatch = useDispatch();
   const data = useLoaderData();
-  const { userId } = useParams<{ userId?: string }>();
 
   useEffect(() => {
-    if (data?.user) {
+    if (data) {
       dispatch(
         setUserInfo({
-          email: data.user.email,
+          id: data.id,
+          email: data.email,
           session: {
             access_token: localStorage.getItem("access_token"),
             refresh_token: localStorage.getItem("refresh_token"),

@@ -70,13 +70,13 @@ export const getMessagesThunk = createAsyncThunk<
  *    - on success replaces optimistic message with server message
  */
 export const sendMessageThunk = createAsyncThunk<
-  { conversationId: string; userId: string; serverMessage: Message },
+  { conversationId: string; userId: string; serverMessage: { message: Message } },
   { conversationId: string; content: string; userId: string },
   { rejectValue: { userId: string; message: string } }
 >("message/sendMessage", async ({ conversationId, content, userId }, { rejectWithValue }) => {
   //handle send message with ws
   try {
-    const serverMessage = await emitWithTimeout<Message>("message:send", {
+    const serverMessage = await emitWithTimeout<{ message: Message }>("message:send", {
       conversationId,
       content,
     });
@@ -84,7 +84,7 @@ export const sendMessageThunk = createAsyncThunk<
   } catch (error) {
     return rejectWithValue({
       userId,
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });
@@ -137,16 +137,15 @@ const messageSlice = createSlice({
         }
       },
       prepare: (conversationId: string, content: string, sender: string) => {
-        const userId = nanoid();
+        const randomId = nanoid();
         const now = new Date().toISOString();
 
         // local shape mimics server message as much as possible
         const optimistic: MessageEntity = {
-          _id: userId, // temporary id for rendering keys
-          userId,
+          _id: randomId,
+          userId: sender,
           pending: true,
           error: null,
-
           conversation: conversationId,
           sender,
           type: "text",
@@ -156,11 +155,10 @@ const messageSlice = createSlice({
           updatedAt: now,
           __v: 0,
         };
-
         return { payload: { conversationId, optimistic } };
       },
     },
-    //Incoming message received from another user via ws
+    //Incoming message received from ws
     receiveMessage: (state, action: PayloadAction<Message>) => {
       const incoming = action.payload;
       const conversationId = incoming.conversation;
@@ -224,14 +222,14 @@ const messageSlice = createSlice({
         const idx = list.findIndex((m) => m.userId === userId || m._id === userId);
 
         if (idx >= 0) {
-          list[idx] = serverMessage; // Replace optimistic message
+          list[idx] = serverMessage.message; // Replace optimistic message
         } else {
-          list.push(serverMessage);
+          list.push(serverMessage.message);
         }
 
         state.byConversationId[conversationId] = list;
       })
-      
+
       // WS Send message rejected / failed
       .addCase(sendMessageThunk.rejected, (state, action) => {
         const payload = action.payload;

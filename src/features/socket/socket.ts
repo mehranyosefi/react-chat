@@ -31,7 +31,7 @@ export function emitWithTimeout<TResponse>(
     socket.emit(event, data, (response: { success: boolean; data?: TResponse; error?: string }) => {
       clearTimeout(timer);
 
-      // Handle backend response format: e.g. { success: true, data: Message }
+      // Handle backend response format: e.g. { success: true, data: any }
       if (response && response.success === false) {
         reject(new Error(response.error || "Failed to send message"));
       } else {

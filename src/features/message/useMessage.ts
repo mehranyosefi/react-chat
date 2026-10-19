@@ -59,7 +59,6 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
     async (content: string, options?: SendMessageOptions) => {
       const activeConvId = options?.conversationId || conversationId;
       const activeUserId = options?.currentUserId || currentUserId;
-
       if (!activeConvId || !activeUserId) {
         throw new Error("Cannot send message: conversationId or activeUserId are required.");
       }
