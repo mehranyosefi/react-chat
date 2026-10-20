@@ -4,6 +4,7 @@ import type { RootState, AppDispatch } from "../../store";
 import {
   addOptimisticMessage,
   getMessagesThunk,
+  getOlderMessagesThunk,
   sendMessageThunk,
   updateMessageThunk,
   deleteMessageThunk,
@@ -38,6 +39,16 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
     conversationId ? (state.message.fetchErrorByConversationId[conversationId] ?? null) : null
   );
 
+  const hasMore = useAppSelector((state) =>
+    conversationId ? (state.message.hasMoreByConversationId[conversationId] ?? false) : false
+  );
+
+  const olderMessagesStatus = useAppSelector((state) =>
+    conversationId
+      ? (state.message.olderMessagesStatusByConversationId[conversationId] ?? "idle")
+      : "idle"
+  );
+
   //Send/Mutation status (if tracked in messageSlice)
   //const isSending = useAppSelector((state) => state.message.isSending ?? false);
 
@@ -50,6 +61,24 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
       if (!activeConvId) return;
 
       return dispatch(getMessagesThunk({ conversationId: activeConvId, force, limit }));
+    },
+    [dispatch, conversationId]
+  );
+
+  //fetch older messages
+  const getOlderMessages = useCallback(
+    (before: string, targetConversationId?: string) => {
+      const activeConvId = targetConversationId || conversationId;
+
+      if (!activeConvId) return;
+
+      return dispatch(
+        getOlderMessagesThunk({
+          conversationId: activeConvId,
+          before,
+          limit: 20,
+        })
+      );
     },
     [dispatch, conversationId]
   );
@@ -112,6 +141,9 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
       loading,
       // isSending,
       getMessages,
+      getOlderMessages,
+      hasMore,
+      olderMessagesStatus,
       sendMessage,
       updateMessage,
       removeMessage,
@@ -123,6 +155,9 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
       loading,
       // isSending,
       getMessages,
+      getOlderMessages,
+      hasMore,
+      olderMessagesStatus,
       sendMessage,
       updateMessage,
       removeMessage,

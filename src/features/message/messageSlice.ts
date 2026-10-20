@@ -20,6 +20,9 @@ function getErrorMessage(error: unknown): string {
 const initialState: MessagesState = {
   byConversationId: {},
 
+  hasMoreByConversationId: {},
+  olderMessagesStatusByConversationId: {},
+
   fetchStatusByConversationId: {},
   fetchErrorByConversationId: {},
 
@@ -35,19 +38,23 @@ const initialState: MessagesState = {
 
 /* Fetch messages for a conversation (cached with condition) */
 export const getMessagesThunk = createAsyncThunk<
-  { conversationId: string; messages: Message[] },
+  { conversationId: string; messages: Message[]; hasMore: boolean },
   { conversationId: string; force?: boolean; limit?: number },
   { state: RootState; rejectValue: string }
 >(
   "message/getMessagesByConversation",
   async ({ conversationId, limit }, { rejectWithValue }) => {
     try {
-      const { data } = await getMessagesByConversation(conversationId, {
+      const response = await getMessagesByConversation(conversationId, {
         params: {
-          limit: limit ?? 50,
+          limit: limit ?? 20,
         },
       });
-      return { conversationId, messages: data };
+      return {
+        conversationId,
+        messages: [...response.data].reverse(),
+        hasMore: response.meta.hasMore,
+      };
     } catch (error) {
       return rejectWithValue(getErrorMessage(error));
     }
@@ -58,6 +65,56 @@ export const getMessagesThunk = createAsyncThunk<
       const status = state.fetchStatusByConversationId[conversationId] ?? "idle";
       if (status === "loading") return false;
       if (status === "succeeded" && !force) return false;
+      return true;
+    },
+  }
+);
+
+export const getOlderMessagesThunk = createAsyncThunk<
+  {
+    conversationId: string;
+    messages: Message[];
+    hasMore: boolean;
+  },
+  {
+    conversationId: string;
+    before: string;
+    limit?: number;
+  },
+  {
+    state: RootState;
+    rejectValue: string;
+  }
+>(
+  "message/getOlderMessages",
+  async ({ conversationId, before, limit }, { rejectWithValue }) => {
+    try {
+      const response = await getMessagesByConversation(conversationId, {
+        params: {
+          limit: limit ?? 20,
+          before,
+        },
+      });
+
+      return {
+        conversationId,
+        messages: [...response.data].reverse(),
+        hasMore: response.meta.hasMore,
+      };
+    } catch (error) {
+      return rejectWithValue(getErrorMessage(error));
+    }
+  },
+  {
+    condition: ({ conversationId }, { getState }) => {
+      const state = getState().message;
+      const status = state.olderMessagesStatusByConversationId[conversationId] ?? "idle";
+      const fetchStatus = state.fetchStatusByConversationId[conversationId] ?? "idle";
+      const hasMore = state.hasMoreByConversationId[conversationId];
+
+      if (fetchStatus !== "succeeded") return false;
+      if (status === "loading") return false;
+      if (hasMore !== true) return false;
       return true;
     },
   }
@@ -200,15 +257,35 @@ const messageSlice = createSlice({
         state.fetchErrorByConversationId[conversationId] = null;
       })
       .addCase(getMessagesThunk.fulfilled, (state, action) => {
-        const { conversationId, messages } = action.payload;
+        const { conversationId, messages, hasMore } = action.payload;
         state.fetchStatusByConversationId[conversationId] = "succeeded";
         state.byConversationId[conversationId] = messages;
+        state.hasMoreByConversationId[conversationId] = hasMore;
       })
       .addCase(getMessagesThunk.rejected, (state, action) => {
         const { conversationId } = action.meta.arg;
         state.fetchStatusByConversationId[conversationId] = "failed";
         state.fetchErrorByConversationId[conversationId] =
           (action.payload as string) ?? action.error.message ?? "Error fetching messages";
+      })
+
+      //get older messages
+      .addCase(getOlderMessagesThunk.pending, (state, action) => {
+        const { conversationId } = action.meta.arg;
+        state.olderMessagesStatusByConversationId[conversationId] = "loading";
+      })
+      .addCase(getOlderMessagesThunk.fulfilled, (state, action) => {
+        const { conversationId, messages, hasMore } = action.payload;
+        const currentMessages = state.byConversationId[conversationId] ?? [];
+        const existingIds = new Set(currentMessages.map((message) => message._id));
+        const uniqueOlderMessages = messages.filter((message) => !existingIds.has(message._id));
+        state.byConversationId[conversationId] = [...uniqueOlderMessages, ...currentMessages];
+        state.hasMoreByConversationId[conversationId] = hasMore;
+        state.olderMessagesStatusByConversationId[conversationId] = "succeeded";
+      })
+      .addCase(getOlderMessagesThunk.rejected, (state, action) => {
+        const { conversationId } = action.meta.arg;
+        state.olderMessagesStatusByConversationId[conversationId] = "failed";
       })
 
       // WS Send message fulfilled

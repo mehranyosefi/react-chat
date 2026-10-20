@@ -15,8 +15,10 @@ export type MessageResponse = {
 };
 export type MessagesResponse = {
   data: Message[];
+  meta: {
+    hasMore: boolean;
+  };
 };
-
 
 export type CreateMessagePayload = {
   conversationId: string;

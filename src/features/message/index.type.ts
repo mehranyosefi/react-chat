@@ -12,6 +12,12 @@ export type MessagesState = {
   // messages grouped by conversationId
   byConversationId: Record<string, MessageEntity[]>;
 
+  // Indicates whether older messages exist for each conversation
+  hasMoreByConversationId: Record<string, boolean>;
+
+  // Status of fetching older messages for each conversation
+  olderMessagesStatusByConversationId: Record<string, AsyncStatus>;
+
   // fetch status per conversation
   fetchStatusByConversationId: Record<string, AsyncStatus>;
   fetchErrorByConversationId: Record<string, string | null>;

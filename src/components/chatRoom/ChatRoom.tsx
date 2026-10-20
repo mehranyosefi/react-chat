@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router";
 import { Conversation } from "../../services/conversation/conversation.type";
 import {
@@ -21,6 +21,8 @@ function ChatRoom() {
   const currentUserId = useAppSelector((state) => state?.user?.id);
   const { joinToConversation, leaveConversation } = useConversations();
   const isSocketConnected = useAppSelector((state) => state.socket.connected);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const previousScrollHeightRef = useRef<number | null>(null);
 
   //TODO return to '/' path if contact or conversation doesnt exist
   const {
@@ -28,6 +30,9 @@ function ChatRoom() {
     loading: isMessagesLoading,
     fetchError: messagesError,
     getMessages,
+    getOlderMessages,
+    hasMore,
+    olderMessagesStatus,
     sendMessage,
   } = useMessage(conversation?._id, currentUserId);
 
@@ -91,9 +96,42 @@ function ChatRoom() {
   //Fetch messages once conversation is loaded
   useEffect(() => {
     if (conversation?._id) {
-      getMessages(false, conversation._id, 100);
+      getMessages(false, conversation._id, 20);
     }
   }, [conversation?._id, getMessages]);
+
+  //scroll for old messages
+  useEffect(() => {
+    const container = messageContainerRef.current;
+
+    if (!container) return;
+
+    const previousScrollHeight = previousScrollHeightRef.current;
+
+    if (previousScrollHeight !== null) {
+      // Preserve scroll position when older messages are added
+      const scrollHeightDifference = container.scrollHeight - previousScrollHeight;
+      container.scrollTop += scrollHeightDifference;
+      previousScrollHeightRef.current = null;
+      return;
+    }
+
+    // Scroll to the bottom when messages change
+    container.scrollTop = container.scrollHeight;
+  }, [messages]);
+
+  const handleMessagesScroll = () => {
+    const container = messageContainerRef.current;
+
+    if (!container) return;
+
+    if (container.scrollTop <= 50 && hasMore && olderMessagesStatus !== "loading") {
+      const oldestMessage = messages[0];
+      if (!oldestMessage) return;
+      previousScrollHeightRef.current = container.scrollHeight;
+      getOlderMessages(oldestMessage._id);
+    }
+  };
 
   //Send message
   async function handleSendMessage(input: string) {
@@ -115,6 +153,7 @@ function ChatRoom() {
       console.error("Error sending message:", error);
     }
   }
+
 
   return (
     <div className="flex flex-col justify-between h-full md:px-24">
@@ -139,11 +178,15 @@ function ChatRoom() {
 
       <div className="flex flex-col h-full overflow-hidden">
         {/* Messages Area */}
-        <div className="grow min-h-0 overflow-y-auto py-4 flex flex-col gap-y-2 px-5">
+        <div ref={messageContainerRef} onScroll={handleMessagesScroll} className="grow min-h-0 overflow-y-auto py-4 flex flex-col gap-y-2 px-5">
           <div className="mt-auto" />
 
           {isMessagesLoading && messages.length === 0 && (
             <div className="text-center text-gray-400 py-4">Loading messages...</div>
+          )}
+
+          {olderMessagesStatus === "loading" && (
+            <div className="text-center text-gray-400 py-2">Loading older messages...</div>
           )}
 
           {messagesError && <div className="text-center text-red-500 py-2">{messagesError}</div>}
