@@ -18,6 +18,10 @@ const initialState: TabState = {
       id: "contacts",
       component: "ContactList",
     },
+    {
+      id: "chatroom",
+      component: "ChatRoom",
+    },
   ],
 
   activeTabId: "conversations",
@@ -31,7 +35,6 @@ const tabSlice = createSlice({
   reducers: {
     pushTab(state, action: PayloadAction<string>) {
       const tabId = action.payload;
-
       if (state.activeTabId === tabId) return;
 
       state.history.push(tabId);

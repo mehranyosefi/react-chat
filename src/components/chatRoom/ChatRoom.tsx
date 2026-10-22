@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Conversation } from "../../services/conversation/conversation.type";
 import {
   createConversation,
@@ -9,9 +9,11 @@ import { useMessage } from "../../features/message/useMessage";
 import TextInputModel from "./TextInputModel";
 import { getUserByID } from "../../services/user/user.api";
 import { User } from "../../services/user/user.type";
-import { TypedUseSelectorHook, useSelector } from "react-redux";
-import type { RootState } from "../../store";
+import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../store";
 import { useConversations } from "../../features/conversation/useConversation";
+import BaseButton from "../base/BaseButton";
+import { popTab } from "../../features/tab/tabSlice";
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 function ChatRoom() {
@@ -21,7 +23,9 @@ function ChatRoom() {
   const currentUserId = useAppSelector((state) => state?.user?.id);
   const { joinToConversation, leaveConversation } = useConversations();
   const isSocketConnected = useAppSelector((state) => state.socket.connected);
-
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const activeTabId = useSelector((state: RootState) => state.tab.activeTabId);
   //TODO return to '/' path if contact or conversation doesnt exist
   const {
     messages,
@@ -116,27 +120,47 @@ function ChatRoom() {
     }
   }
 
-  return (
-    <div className="flex flex-col justify-between h-full md:px-24">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-5 py-2 rounded-4xl bg-gray-800 text-white">
-        <div className="flex gap-x-4 items-center">
-          <div className="size-12 rounded-full bg-gray-600 flex items-center justify-center font-bold">
-            {contact?.name?.[0] ?? "U"}
-          </div>
-          <div className="flex flex-col gap-y-1">
-            <span className="font-semibold">{contact?.name ?? "Loading..."}</span>
-            <span className="text-xs text-gray-400">Online</span>
-          </div>
-        </div>
+  function handleBackButton(): void {
+    dispatch(popTab());
+    if (activeTabId === "chatroom") {
+      navigate("/");
+    }
+  }
 
-        <div className="flex gap-x-4">
-          <svg className="size-7 text-gray-300 hover:text-white transition-all duration-300 cursor-pointer">
-            <use href="/img/icons.svg#search-rounded"></use>
+  return (
+    <div className="flex flex-col justify-between h-full p-5 md:px-24">
+      {/* Top Bar */}
+      <div className="flex items-center gap-x-2">
+        <BaseButton
+          className="md:hidden size-10 flex items-center justify-center text-gray-300 transition-colors duration-300 hover:bg-gray-600/40"
+          paddingX="0"
+          paddingY="0"
+          variant="none"
+          rounded="rounded-full"
+          emitOnClick={handleBackButton}
+        >
+          <svg className="size-6">
+            <use href="/img/icons.svg#arrow-back"></use>
           </svg>
+        </BaseButton>
+        <div className="flex items-center justify-between grow px-5 py-2 rounded-4xl bg-gray-800 text-white">
+          <div className="flex gap-x-4 items-center">
+            <div className="size-12 rounded-full bg-gray-600 flex items-center justify-center font-bold">
+              {contact?.name?.[0] ?? "U"}
+            </div>
+            <div className="flex flex-col gap-y-1">
+              <span className="font-semibold">{contact?.name ?? "Loading..."}</span>
+              <span className="text-xs text-gray-400">Online</span>
+            </div>
+          </div>
+
+          <div className="flex gap-x-4">
+            <svg className="size-7 text-gray-300 hover:text-white transition-all duration-300 cursor-pointer">
+              <use href="/img/icons.svg#search-rounded"></use>
+            </svg>
+          </div>
         </div>
       </div>
-
       <div className="flex flex-col h-full overflow-hidden">
         {/* Messages Area */}
         <div className="grow min-h-0 overflow-y-auto py-4 flex flex-col gap-y-2 px-5">

@@ -12,15 +12,17 @@ import Tabs from "../tabs/Tabs";
 import CreateContactForm from "../contact/CreateContactForm";
 import { BaseModal } from "../base/modal/BaseModal";
 import { ApiError } from "../../features/api/apiClient.type";
+import { useMediaQuery } from "../../features/media/useMediaQuery";
 function LeftSideBar() {
   const navigate = useNavigate();
   const [showOptionMenu, setShowOptionMenu] = useState<boolean>(false);
   // const { session } = useSelector(store => store.user);
   const optionMenuRef = useRef<null>(null);
-  const [createContactModalIsOpen, setCreateContactModalIsOpen] =
-    useState(false);
+  const [createContactModalIsOpen, setCreateContactModalIsOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const activeTabId = useSelector((state: RootState) => state.tab.activeTabId);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isSubTab = activeTabId === "contacts" || activeTabId === "chatroom";
 
   useOutsideClick(optionMenuRef, () => setShowOptionMenu(false));
   async function handleLogOut() {
@@ -40,14 +42,20 @@ function LeftSideBar() {
       console.error(apiError.message);
     }
   }
+  function handleBackButton(): void {
+    dispatch(popTab());
+    if (activeTabId === "chatroom") {
+      navigate("/");
+    }
+  }
 
   return (
     <div className="relative h-full">
       <div className="relative">
         <div className="flex items-center p-3 gap-x-4">
-          {activeTabId === "contacts" ? (
+          {isSubTab ? (
             <BaseButton
-              emitOnClick={() => dispatch(popTab())}
+              emitOnClick={handleBackButton}
               className="size-10 flex items-center justify-center text-gray-300 transition-colors duration-300 hover:bg-gray-600/40"
               paddingX="0"
               paddingY="0"
@@ -70,53 +78,51 @@ function LeftSideBar() {
                 <div className="menu-option absolute left-10 top-14 rounded-xl bg-gray-900 p-5">
                   <ul className="list-none">
                     <li>
-                      <BaseButton emitOnClick={handleLogOut}>
-                        logLout
-                      </BaseButton>
+                      <BaseButton emitOnClick={handleLogOut}>logLout</BaseButton>
                     </li>
                   </ul>
                 </div>
               )}
             </div>
           )}
-          <div className="flex items-center w-[calc(100%-56px)] bg-gray-700/50 rounded-3xl">
-            <svg className="size-7 ml-3">
-              <use
-                className="size-7"
-                href="/img/icons.svg#search-rounded"
-              ></use>
-            </svg>
-            <input
-              type="text"
-              className="py-3 px-3 outline-none grow"
-              placeholder="Search"
-            />
-          </div>
+          {activeTabId !== "chatroom" && (
+            <div className="flex items-center w-[calc(100%-56px)] bg-gray-700/50 rounded-3xl">
+              <svg className="size-7 ml-3">
+                <use className="size-7" href="/img/icons.svg#search-rounded"></use>
+              </svg>
+              <input type="text" className="py-3 px-3 outline-none grow" placeholder="Search" />
+            </div>
+          )}
         </div>
       </div>
+      {/* <Tabs /> */}
+      <div className="grow overflow-hidden">
       <Tabs />
-      <BaseButton
-        className="btn__action absolute right-5 bottom-5 flex items-center justify-center shadow"
-        paddingX="0"
-        paddingY="0"
-        variant="main"
-        rounded="rounded-full"
-        emitOnClick={() => {
-          if (activeTabId === "conversations") {
-            dispatch(pushTab("contacts"));
-          } else if (activeTabId === "contacts") {
-            setCreateContactModalIsOpen(true);
-          }
-        }}
-      >
-        {activeTabId === "conversations" ? (
-          <svg className="size-5">
-            <use href="/img/icons.svg#user-add"></use>
-          </svg>
-        ) : (
-          <span className="text-3xl">+</span>
-        )}
-      </BaseButton>
+    </div>
+      {activeTabId !== "chatroom" && (
+        <BaseButton
+          className="btn__action absolute right-5 bottom-5 flex items-center justify-center shadow"
+          paddingX="0"
+          paddingY="0"
+          variant="main"
+          rounded="rounded-full"
+          emitOnClick={() => {
+            if (activeTabId === "conversations") {
+              dispatch(pushTab("contacts"));
+            } else if (activeTabId === "contacts") {
+              setCreateContactModalIsOpen(true);
+            }
+          }}
+        >
+          {activeTabId === "conversations" ? (
+            <svg className="size-5">
+              <use href="/img/icons.svg#user-add"></use>
+            </svg>
+          ) : (
+            <span className="text-3xl">+</span>
+          )}
+        </BaseButton>
+      )}
 
       <BaseModal
         isOpen={createContactModalIsOpen}
