@@ -59,7 +59,7 @@ function AppLayout() {
             <MainSideBar />
           </div>
           <div className={`w-full h-full grow-[3] ${isChatOpen ? "flex" : "hidden md:flex"}`}>
-            <div className="grow h-full flex flex-col">
+            <div className="w-full h-full flex flex-col">
               <Outlet />
             </div>
 

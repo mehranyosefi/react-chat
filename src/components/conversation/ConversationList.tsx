@@ -2,14 +2,17 @@ import { useNavigate } from "react-router";
 import { useConversations } from "../../features/conversation/useConversation";
 import { useEffect } from "react";
 import { useMediaQuery } from "../../features/media/useMediaQuery";
-import { useDispatch } from "react-redux";
+import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { pushTab } from "../../features/tab/tabSlice";
+import { RootState } from "../../store";
 
 function ConversationList() {
+  const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
   const { conversations, loading, error, status, getConversations } = useConversations();
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const currentUserId = useAppSelector((state) => state?.user?.id);
 
   useEffect(() => {
     if (status === "idle") {
@@ -17,7 +20,8 @@ function ConversationList() {
     }
   }, [status, getConversations]);
 
-    const handleSelectConversation = (participantId: string) => {
+  const handleSelectConversation = (participantIds: string[]) => {
+    const participantId = participantIds.find((p) => p !== currentUserId);
     if (isDesktop) {
       navigate(`/${participantId}`);
     } else {
@@ -34,7 +38,11 @@ function ConversationList() {
         {conversations &&
           conversations.map((conversation) => {
             return (
-              <li key={conversation._id} onClick={() => handleSelectConversation(conversation.participants[1])} className="cursor-pointer">
+              <li
+                key={conversation._id}
+                onClick={() => handleSelectConversation(conversation.participants)}
+                className="cursor-pointer"
+              >
                 <div className="flex gap-3 grow">
                   <div className="size-16 bg-gray-800 rounded-full flex items-center justify-center">
                     {/* TODO use a light package for svg */}
