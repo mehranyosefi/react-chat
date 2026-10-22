@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef , useLayoutEffect } from "react";
 import { useParams } from "react-router";
 import { Conversation } from "../../services/conversation/conversation.type";
 import {
@@ -21,13 +21,22 @@ function ChatRoom() {
   const currentUserId = useAppSelector((state) => state?.user?.id);
   const { joinToConversation, leaveConversation } = useConversations();
   const isSocketConnected = useAppSelector((state) => state.socket.connected);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const initialScrollConversationIdRef = useRef<string | null>(null);
+  const pendingOlderScrollRef = useRef<{ scrollHeight:number; scrollTop:number; oldestMessageId:string;} | null>(null);
+  const shouldScrollToBottomRef = useRef(false)
+
 
   //TODO return to '/' path if contact or conversation doesnt exist
   const {
     messages,
     loading: isMessagesLoading,
+    fetchStatus,
     fetchError: messagesError,
     getMessages,
+    getOlderMessages,
+    hasMore,
+    olderMessagesStatus,
     sendMessage,
   } = useMessage(conversation?._id, currentUserId);
 
@@ -95,9 +104,73 @@ function ChatRoom() {
     }
   }, [conversation?._id, getMessages]);
 
+// Scroll to bottom after initial messages are loaded
+useLayoutEffect(()=>{
+  const container = messageContainerRef.current;
+  const conversationId = conversation?._id;
+
+  if(!container || !conversationId || isMessagesLoading) return
+  if(fetchStatus !== "succeeded") return
+  if(initialScrollConversationIdRef.current === conversationId) return
+
+  container.scrollTop = container.scrollHeight
+  initialScrollConversationIdRef.current = conversationId
+},[
+  conversation?._id,
+  isMessagesLoading,
+  fetchStatus,
+  messages.length,
+])
+
+  //scroll for old messages
+  useLayoutEffect(() => {
+    const container = messageContainerRef.current;
+    const pending = pendingOlderScrollRef.current;
+
+    if(!container || !pending || messages.length === 0) return;
+
+    const newOldestMessageId = messages[0]?._id
+
+    if(newOldestMessageId === pending.oldestMessageId) return
+
+    const heightDifference = container.scrollHeight - pending.scrollHeight;
+    container.scrollTop = pending.scrollTop + heightDifference
+
+    pendingOlderScrollRef.current = null
+  }, [messages]);
+
+  const handleMessagesScroll = () => {
+    const container = messageContainerRef.current;
+
+    if (!container) return;
+
+      if(!container || container.scrollTop>50 || !hasMore || olderMessagesStatus === "loading" || pendingOlderScrollRef.current !== null) return
+
+      const oldestMessage = messages[0]
+      if(!oldestMessage) return
+
+      pendingOlderScrollRef.current = {
+        scrollHeight: container.scrollHeight,
+        scrollTop: container.scrollTop,
+        oldestMessageId : oldestMessage._id
+    }
+
+    getOlderMessages(oldestMessage._id)
+  };
+
+  useLayoutEffect(()=>{
+    const container = messageContainerRef.current;
+    if(!container || !shouldScrollToBottomRef.current) return
+
+    container.scrollTop = container.scrollHeight
+    shouldScrollToBottomRef.current = false;
+  },[messages])
+
   //Send message
   async function handleSendMessage(input: string) {
     if (!input.trim()) return;
+
+    shouldScrollToBottomRef.current = true
 
     try {
       // check if conversation exist
@@ -115,6 +188,7 @@ function ChatRoom() {
       console.error("Error sending message:", error);
     }
   }
+
 
   return (
     <div className="flex flex-col justify-between h-full md:px-24">
@@ -139,11 +213,15 @@ function ChatRoom() {
 
       <div className="flex flex-col h-full overflow-hidden">
         {/* Messages Area */}
-        <div className="grow min-h-0 overflow-y-auto py-4 flex flex-col gap-y-2 px-5">
+        <div ref={messageContainerRef} onScroll={handleMessagesScroll} className="grow min-h-0 overflow-y-auto py-4 flex flex-col gap-y-2 px-5">
           <div className="mt-auto" />
 
           {isMessagesLoading && messages.length === 0 && (
             <div className="text-center text-gray-400 py-4">Loading messages...</div>
+          )}
+
+          {olderMessagesStatus === "loading" && (
+            <div className="text-center text-gray-400 py-2">Loading older messages...</div>
           )}
 
           {messagesError && <div className="text-center text-red-500 py-2">{messagesError}</div>}
