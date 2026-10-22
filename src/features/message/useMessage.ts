@@ -23,11 +23,14 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
   const dispatch = useAppDispatch();
 
   //Messages scoped to current conversation (stable reference fallback)
-  const messages = useAppSelector((state) =>
-    conversationId
-      ? (state.message.byConversationId[conversationId] ?? EMPTY_MESSAGES)
-      : EMPTY_MESSAGES
-  );
+  const messages = useAppSelector((state) => {
+    if (!conversationId) return EMPTY_MESSAGES;
+
+    const currentMessages = state.message.byConversationId[conversationId];
+    if (!currentMessages) return EMPTY_MESSAGES;
+
+    return [...currentMessages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  });
 
   //Fetch statuses
   const fetchStatus = useAppSelector((state) =>

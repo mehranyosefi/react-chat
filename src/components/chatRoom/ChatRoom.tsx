@@ -91,7 +91,7 @@ function ChatRoom() {
   //Fetch messages once conversation is loaded
   useEffect(() => {
     if (conversation?._id) {
-      getMessages(false, conversation._id, 100);
+      getMessages(false, conversation._id, 20);
     }
   }, [conversation?._id, getMessages]);
 
@@ -155,10 +155,8 @@ function ChatRoom() {
           )}
 
           {/* Message bubbles */}
-          {console.log(messages)}
           {messages.map((message) => {
             const isMe = message.sender === currentUserId;
-
             return (
               <div
                 key={message._id}
