@@ -98,7 +98,7 @@ export const getOlderMessagesThunk = createAsyncThunk<
 
       return {
         conversationId,
-        messages: [...response.data].reverse(),
+        messages: response.data,
         hasMore: response.meta.hasMore,
       };
     } catch (error) {
