@@ -64,13 +64,13 @@ function CreateContactForm(props: {
             <div className="text-red-500 text-sm text-center">{errors}</div>
           )}
           <div className="create-form__footer flex gap-x-5 justify-around">
-            <BaseButton type="submit" isLoading={loading} className="grow">
+            <BaseButton type="submit" isLoading={loading} className="w-1/2 max-md:px-5">
               DONE
             </BaseButton>
             <BaseButton
               emitOnClick={handleClose}
               variant="outline"
-              className="grow"
+              className="w-1/2 max-md:px-5"
             >
               CANCEL
             </BaseButton>

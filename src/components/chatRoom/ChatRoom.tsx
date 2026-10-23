@@ -29,15 +29,6 @@ function ChatRoom() {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const initialScrollConversationIdRef = useRef<string | null>(null);
   const [showScrollBottomButton, setShowScrollBottomButton] = useState(false);
-
-  const pendingOlderScrollRef = useRef<{
-    scrollHeight: number;
-    scrollTop: number;
-    oldestMessageId: string;
-  } | null>(null);
-  const shouldScrollToBottomRef = useRef(false);
-
-  //TODO return to '/' path if contact or conversation doesnt exist
   const {
     messages,
     loading: isMessagesLoading,
@@ -49,6 +40,17 @@ function ChatRoom() {
     olderMessagesStatus,
     sendMessage,
   } = useMessage(conversation?._id, currentUserId);
+  const prevMessagesLengthRef = useRef(messages.length);
+  const pendingOlderScrollRef = useRef<{
+    scrollHeight: number;
+    scrollTop: number;
+    oldestMessageId: string;
+  } | null>(null);
+  const shouldScrollToBottomRef = useRef(false);
+  const prevLastMessageIdRef = useRef<string | undefined>(
+    messages[messages.length - 1]?._id
+  );
+  //TODO return to '/' path if contact or conversation doesnt exist
 
   //Fetch conversation and join to that
   useEffect(() => {
@@ -134,40 +136,55 @@ function ChatRoom() {
 
     if (!container || !pending) return;
 
-    //Calculate height difference and restore scroll position so the user doesn't lose their place
     const heightDifference = container.scrollHeight - pending.scrollHeight;
+
     container.scrollTop = pending.scrollTop + heightDifference;
 
-    pendingOlderScrollRef.current = null;
-  }, [messages]); // Safe here because this effect only runs when pendingOlderScrollRef is set
-
-  // Handle user sending a message OR incoming messages
-  const prevMessagesLengthRef = useRef(messages.length);
-
-  useLayoutEffect(() => {
-    const container = messageContainerRef.current;
-    if (!container) return;
-
-    const isNewMessageAdded = messages.length > prevMessagesLengthRef.current;
+    // Important: older messages are not new messages.
+    // Prevent the next effect from scrolling to the bottom.
     prevMessagesLengthRef.current = messages.length;
 
-    if (!isNewMessageAdded) return;
+    pendingOlderScrollRef.current = null;
+  }, [messages]);
 
-    const lastMessage = messages[messages.length - 1];
-    const isMyMessage = lastMessage?.sender === currentUserId;
+  // Handle user sending a message OR incoming messages
 
-    const distanceFromBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight;
-    const isNearBottom = distanceFromBottom < 150;
+  useLayoutEffect(() => {
+  const container = messageContainerRef.current;
+  if (!container) return;
 
-    if (shouldScrollToBottomRef.current || isMyMessage || isNearBottom) {
-      scrollToBottom(shouldScrollToBottomRef.current ? "smooth" : "auto");
-      shouldScrollToBottomRef.current = false;
-    } else {
-      // A contact sent a message while user is looking at history -> show scroll button
-      setShowScrollBottomButton(true);
-    }
-  }, [messages, currentUserId]);
+  const lastMessage = messages[messages.length - 1];
+  const previousLastId = prevLastMessageIdRef.current;
+
+  prevLastMessageIdRef.current = lastMessage?._id;
+
+  // If the last message hasn't changed, this was likely
+  // a prepend of older messages, not a new message.
+  if (!lastMessage || lastMessage._id === previousLastId) {
+    return;
+  }
+
+  const distanceFromBottom =
+    container.scrollHeight -
+    container.scrollTop -
+    container.clientHeight;
+
+  const isNearBottom = distanceFromBottom < 150;
+  const isMyMessage = lastMessage.sender === currentUserId;
+
+  if (
+    shouldScrollToBottomRef.current ||
+    isMyMessage ||
+    isNearBottom
+  ) {
+    scrollToBottom(
+      shouldScrollToBottomRef.current ? "smooth" : "auto"
+    );
+    shouldScrollToBottomRef.current = false;
+  } else {
+    setShowScrollBottomButton(true);
+  }
+}, [messages, currentUserId]);
 
   // Scroll handler for pagination (fetching older messages when scrolled to top)
   const handleMessagesScroll = () => {
@@ -281,7 +298,7 @@ function ChatRoom() {
           onScroll={handleMessagesScroll}
           className="grow min-h-0 overflow-y-auto py-4 flex flex-col gap-y-2 px-5"
         >
-          <div className="mt-auto" />
+          {/* <div className="mt-auto" /> */}
 
           {isMessagesLoading && messages.length === 0 && (
             <div className="text-center text-gray-400 py-4">Loading messages...</div>
@@ -325,11 +342,11 @@ function ChatRoom() {
           })}
         </div>
 
-        {/* Scroll to Bottom Floating Button */}
+        {/* Scroll to Bottom */}
         {showScrollBottomButton && (
           <button
             onClick={() => scrollToBottom("smooth")}
-            className="absolute bottom-40 right-8 md:right-32 z-10 size-12 md:size-14 bg-purple-700 hover:bg-purple-800 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 opacity-75 cursor-pointer"
+            className="absolute bottom-44 right-12 md:right-32 z-10 size-12 md:size-14 bg-purple-600 hover:bg-purple-500 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 opacity-75 cursor-pointer"
             title="Scroll to bottom"
           >
             <svg className="size-5 -rotate-90">
