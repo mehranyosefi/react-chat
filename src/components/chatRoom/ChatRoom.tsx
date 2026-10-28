@@ -64,8 +64,9 @@ function ChatRoom() {
       try {
         const { data } = await getConversationBycontactId(contactId!);
         if (isMounted) setConversation(data);
-      } catch (err) {
-        console.error("Failed to load conversation", err);
+      } catch (error) {
+        if(error?.data?.status === 'fail' && error.status === 404) return navigate('/')
+        console.error(err);
       }
     };
 
@@ -354,7 +355,7 @@ function ChatRoom() {
           onScroll={handleMessagesScroll}
           className="grow min-h-0 overflow-y-auto py-4 flex flex-col gap-y-2 px-5"
         >
-          {/* <div className="mt-auto" /> */}
+          <div className="mt-auto" />
 
           {isMessagesLoading && messages.length === 0 && (
             <div className="text-center text-gray-400 py-4">Loading messages...</div>

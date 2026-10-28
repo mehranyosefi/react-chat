@@ -24,6 +24,7 @@ export default function ConversationList() {
                 key={conversation._id}
                 conversationId={conversation._id}
                 conversationKey={conversation.conversationKey}
+                participants={conversation.participants}
               />
             );
           })}
