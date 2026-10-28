@@ -1,8 +1,8 @@
-import { KeyboardEvent, useState } from "react";
+import { KeyboardEvent, useEffect, useState } from "react";
 import BaseInput from "../base/BaseInput";
 
-function TextInputModel(props: { emitValue: (val: string) => void, classes?: string, }) {
-    const { emitValue, classes = '' } = props;
+function TextInputModel(props: { emitValue: (val: string) => void, classes?: string, editValue?:string; onCancel?:()=>void}) {
+    const { emitValue, classes = '', editValue="", onCancel } = props;
     const [model, updateModel] = useState<string>('');
 
     function sendMessage(): void {
@@ -10,8 +10,13 @@ function TextInputModel(props: { emitValue: (val: string) => void, classes?: str
         emitValue(model)
         updateModel('')
     }
+
+    useEffect(()=>{
+updateModel(editValue)
+    }, [editValue])
     function handleKeyDown(e: KeyboardEvent<HTMLElement>) {
-        if (e.key === "Enter") sendMessage()
+        if (e.key === "Enter") sendMessage();
+        if(e.key === "Escape") onCancel?.();
     }
     return (
         <div className="text-input-model flex items-center gap-x-2 mb-7">

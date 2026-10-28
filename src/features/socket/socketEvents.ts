@@ -1,5 +1,5 @@
 import { Message } from "../../services/message/message.type";
-import { receiveMessage } from "../../features/message/messageSlice"
+import { receiveMessage ,receiveUpdatedMessage , receiveDeletedMessage } from "../../features/message/messageSlice"
 import type { AppDispatch } from "../../store";
 import { socket } from "./socket";
 
@@ -33,6 +33,14 @@ export function registerSocketEvents(dispatch: AppDispatch) {
     dispatch(receiveMessage(message));
   };
 
+  const handleUpdatedMessage = (message:Message)=>{
+    dispatch(receiveUpdatedMessage(message))
+  };
+
+  const handleDeletedMessage =(payload:{messageId:string , conversationId:string})=>{
+    dispatch(receiveDeletedMessage(payload))
+  };
+
   //conversation event
   const handleConversationJoin = (conversationId: string) => {
     console.log(`Joined conversation with ID: ${conversationId}`);
@@ -42,6 +50,9 @@ export function registerSocketEvents(dispatch: AppDispatch) {
   socket.on("connect", handleConnect);
   socket.on("disconnect", handleDisconnect);
   socket.on("connect_error", handleConnectError);
+  socket.on("message:edited", handleUpdatedMessage);
+  socket.on("message:deleted", handleDeletedMessage);
+
   
 
   //conversation
@@ -58,5 +69,7 @@ export function registerSocketEvents(dispatch: AppDispatch) {
     socket.off("disconnect", handleDisconnect);
     socket.off("connect_error", handleConnectError);
     socket.off("message:new", handleNewMessage);
+    socket.off("message:edited", handleUpdatedMessage);
+    socket.off("message:deleted", handleDeletedMessage);
   };
 }
