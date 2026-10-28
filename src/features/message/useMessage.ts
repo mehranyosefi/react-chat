@@ -112,10 +112,14 @@ export function useMessage(conversationId?: string, currentUserId?: string) {
 
   //Update message
   const updateMessage = useCallback(
-    (messageId: string, content: string) => {
-      return dispatch(updateMessageThunk({ messageId, content })).unwrap();
+    ( messageId: string, content: string, targetConversationId?: string ) => {
+      const activeconvId = targetConversationId || conversationId;
+      if(!activeconvId){
+        throw new Error("Cannot update message: conversationId id required")
+      }
+      return dispatch(updateMessageThunk({ conversationId:activeconvId,messageId, content })).unwrap();
     },
-    [dispatch]
+    [dispatch, conversationId]
   );
 
   //Remove message with lazy conversationId fallback

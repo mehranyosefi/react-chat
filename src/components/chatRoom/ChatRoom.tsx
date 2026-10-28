@@ -6,6 +6,7 @@ import {
   getConversationBycontactId,
 } from "../../services/conversation/conversation.api";
 import { useMessage } from "../../features/message/useMessage";
+import { Message } from "../../services/message/message.type";
 import TextInputModel from "./TextInputModel";
 import { getUserByID } from "../../services/user/user.api";
 import { User } from "../../services/user/user.type";
@@ -29,6 +30,9 @@ function ChatRoom() {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const initialScrollConversationIdRef = useRef<string | null>(null);
   const [showScrollBottomButton, setShowScrollBottomButton] = useState(false);
+  const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [menuOpenUp , setMenuOpenUp]=useState(false)
   const {
     messages,
     loading: isMessagesLoading,
@@ -39,6 +43,8 @@ function ChatRoom() {
     hasMore,
     olderMessagesStatus,
     sendMessage,
+    updateMessage,
+    removeMessage,
   } = useMessage(conversation?._id, currentUserId);
   const prevMessagesLengthRef = useRef(messages.length);
   const pendingOlderScrollRef = useRef<{
@@ -47,9 +53,9 @@ function ChatRoom() {
     oldestMessageId: string;
   } | null>(null);
   const shouldScrollToBottomRef = useRef(false);
-  const prevLastMessageIdRef = useRef<string | undefined>(
-    messages[messages.length - 1]?._id
-  );
+  const prevLastMessageIdRef = useRef<string | undefined>(messages[messages.length - 1]?._id);
+  //TODO return to '/' path if contact or conversation doesnt exist
+
   //Fetch conversation and join to that
   useEffect(() => {
     let isMounted = true;
@@ -149,44 +155,49 @@ function ChatRoom() {
   // Handle user sending a message OR incoming messages
 
   useLayoutEffect(() => {
-  const container = messageContainerRef.current;
-  if (!container) return;
+    const container = messageContainerRef.current;
+    if (!container) return;
 
-  const lastMessage = messages[messages.length - 1];
-  const previousLastId = prevLastMessageIdRef.current;
+    const lastMessage = messages[messages.length - 1];
+    const previousLastId = prevLastMessageIdRef.current;
 
-  prevLastMessageIdRef.current = lastMessage?._id;
+    prevLastMessageIdRef.current = lastMessage?._id;
 
-  // If the last message hasn't changed, this was likely
-  // a prepend of older messages, not a new message.
-  if (!lastMessage || lastMessage._id === previousLastId) {
-    return;
-  }
+    // If the last message hasn't changed, this was likely
+    // a prepend of older messages, not a new message.
+    if (!lastMessage || lastMessage._id === previousLastId) {
+      return;
+    }
 
-  const distanceFromBottom =
-    container.scrollHeight -
-    container.scrollTop -
-    container.clientHeight;
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
 
-  const isNearBottom = distanceFromBottom < 150;
-  const isMyMessage = lastMessage.sender === currentUserId;
+    const isNearBottom = distanceFromBottom < 150;
+    const isMyMessage = lastMessage.sender === currentUserId;
 
-  if (
-    shouldScrollToBottomRef.current ||
-    isMyMessage ||
-    isNearBottom
-  ) {
-    scrollToBottom(
-      shouldScrollToBottomRef.current ? "smooth" : "auto"
-    );
-    shouldScrollToBottomRef.current = false;
-  } else {
-    setShowScrollBottomButton(true);
-  }
-}, [messages, currentUserId]);
+    if (shouldScrollToBottomRef.current || isMyMessage || isNearBottom) {
+      scrollToBottom(shouldScrollToBottomRef.current ? "smooth" : "auto");
+      shouldScrollToBottomRef.current = false;
+    } else {
+      setShowScrollBottomButton(true);
+    }
+  }, [messages, currentUserId]);
+
+  useLayoutEffect(()=>{
+    const container = messageContainerRef.current;
+    if(!container) return;
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+
+    if(distanceFromBottom<150){
+      container.scrollTop = container.scrollHeight
+    }
+  },[editingMessage]);
 
   // Scroll handler for pagination (fetching older messages when scrolled to top)
   const handleMessagesScroll = () => {
+
+    setMenuMessageId(null)
     const container = messageContainerRef.current;
     if (!container) return;
 
@@ -222,6 +233,17 @@ function ChatRoom() {
 
     shouldScrollToBottomRef.current = true;
 
+    if (editingMessage) {
+      if(!conversation?._id) return
+      try{
+        await updateMessage(editingMessage._id, input, conversation?._id );
+      setEditingMessage(null);
+      }catch(error){
+        console.error("Failed to edit message:", error)
+      }
+      return;
+    }
+
     try {
       // check if conversation exist
       if (!conversation?._id) {
@@ -255,6 +277,42 @@ function ChatRoom() {
     });
     setShowScrollBottomButton(false);
   };
+
+  //right click on message
+  function handleMessageClick(e: React.MouseEvent, message: Message) {
+    if (message.sender !== currentUserId) return;
+    e.stopPropagation();
+
+    const container = messageContainerRef.current;
+    if(container){
+      const bubble = e.currentTarget.getBoundingClientRect();
+      const area = container.getBoundingClientRect();
+      const MENU_HEIGHT = 104;
+
+      setMenuOpenUp(bubble.top +MENU_HEIGHT>area.bottom);
+    }
+    setMenuMessageId(message._id);
+  }
+
+  useEffect(() => {
+    const close = () => setMenuMessageId(null);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  },[]);
+
+  async function handleDelete(message: Message) {
+    setMenuMessageId(null)
+    try{
+      await removeMessage(message._id, conversation?._id);
+    }catch(error){
+      console.error("Failed to delete message:", error)
+    }
+  }
+  
+  function handleStartEdit(message: Message) {
+    setEditingMessage(message);
+    setMenuMessageId(null)
+  }
 
   return (
     <div className="flex flex-col justify-between h-full p-5 md:px-24 relative">
@@ -318,10 +376,12 @@ function ChatRoom() {
           {/* Message bubbles */}
           {messages.map((message) => {
             const isMe = message.sender === currentUserId;
+            const isEdited = !!message.updatedAt && new Date(message.updatedAt).getTime() - new Date(message.createdAt).getTime()>1000;
             return (
               <div
                 key={message._id}
-                className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+                onClick={(e) => handleMessageClick(e, message)}
+                className={` relative max-w-[75%] px-4 py-2 rounded-2xl cursor-pointer ${
                   isMe
                     ? "self-end bg-blue-600 text-white rounded-br-none"
                     : "self-start bg-gray-700 text-white rounded-bl-none"
@@ -329,6 +389,7 @@ function ChatRoom() {
               >
                 <p className="text-sm">{message.content}</p>
                 <span className="text-[10px] text-gray-300 block text-right mt-1">
+                  {isEdited && "edited "}
                   {message.createdAt
                     ? new Date(message.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -336,6 +397,33 @@ function ChatRoom() {
                       })
                     : "sending..."}
                 </span>
+
+                {menuMessageId === message._id && (
+                  <div
+                  onClick={e=>e.stopPropagation()}
+                   className={`absolute right-full mr-2 z-50 w-40 h-auto bg-gray-800 text-white rounded-xl p-1 flex flex-col gap-1 ${menuOpenUp ? "bottom-0": "top-0"}`}>
+                    <BaseButton
+                      className="w-full text-left hover:bg-gray-700"
+                      variant="none"
+                      rounded="rounded-lg"
+                      paddingX="px-3"
+                      paddingY="py-2"
+                      emitOnClick={() => handleStartEdit(message)}
+                    >
+                      Edit
+                    </BaseButton>
+                    <BaseButton
+                      className="w-full text-left hover:bg-gray-700 text-red-400"
+                      variant="none"
+                      rounded="rounded-lg"
+                      paddingX="px-3"
+                      paddingY="py-2"
+                      emitOnClick={() => handleDelete(message)}
+                    >
+                      Delete
+                    </BaseButton>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -353,9 +441,28 @@ function ChatRoom() {
             </svg>
           </button>
         )}
+
         {/* Input Field */}
         <div className="mx-auto w-full pb-4">
-          <TextInputModel classes="w-full py-2" emitValue={handleSendMessage} />
+           {editingMessage && (
+          <div className=" flex items-center justify-between px-4 py-2 mb-1 text-sm text-gray-300 bg-gray-800 rounded-2xl">
+            <span className="truncate">Editing message</span>
+            <BaseButton className="size-7 shrink-0 flex items-center justify-center text-gray-400 hover:text-white bg-gray-600/40"
+              variant="none"
+              rounded="rounded-full"
+              paddingX="0"
+              paddingY="0"
+              emitOnClick={()=>setEditingMessage(null)}
+            >✕</BaseButton>
+          </div>
+
+        )}
+          <TextInputModel
+            classes="w-full py-2"
+            emitValue={handleSendMessage}
+            editValue={editingMessage?.content ?? ""}
+            onCancel={()=>setEditingMessage(null)}
+          />
         </div>
       </div>
     </div>
