@@ -42,9 +42,9 @@ const tabSlice = createSlice({
       state.animation = "forward";
     },
     popTab(state) {
-      if(state.history.length <=1 && state.activeTabId === 'contacts') {
-        state.activeTabId = "conversations"
-        return
+      if (state.history.length <= 1 && state.activeTabId === "contacts") {
+        state.activeTabId = "conversations";
+        return;
       }
       if (state.history.length <= 1) return;
 
@@ -55,8 +55,8 @@ const tabSlice = createSlice({
     setIntitailTab(state, action: PayloadAction<string>) {
       const tabId = action.payload;
       state.activeTabId = tabId;
-      state.history = [tabId]
-      state.animation = 'backward'
+      state.history = [tabId];
+      state.animation = "backward";
     },
   },
 });

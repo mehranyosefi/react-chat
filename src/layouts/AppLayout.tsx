@@ -1,4 +1,4 @@
-import DetailInfo from "../components/detailInfo/DetailInfo"
+import DetailInfo from "../components/detailInfo/DetailInfo";
 import { Outlet, redirect, useLoaderData, useNavigation, useParams } from "react-router";
 import MainSideBar from "../components/mainSideBar/mainSideBar";
 // import type { RootState } from "../store";
@@ -33,11 +33,11 @@ function AppLayout() {
       );
     }
   }, [data, dispatch]);
-  
+
   useEffect(() => {
     if (!isDesktop && contactId) {
       dispatch(pushTab("chatroom"));
-    } else if (!isDesktop && !contactId) {
+    } else {
       dispatch(setIntitailTab("conversations"));
     }
   }, [contactId, isDesktop, dispatch]);
