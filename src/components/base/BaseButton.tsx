@@ -3,13 +3,7 @@ import { ReactNode } from "react";
 
 // 1. Define supported color variants
 export type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "danger"
-  | "success"
-  | "outline"
-  | "none"
-  | "main";
+  "primary" | "secondary" | "danger" | "success" | "outline" | "none" | "main";
 export interface BaseButtonProps {
   type?: "button" | "submit" | "reset";
   isLoading?: boolean;
@@ -31,6 +25,7 @@ export interface BaseButtonProps {
     | "rounded-2xl"
     | "rounded-3xl"
     | "rounded-full";
+  disabled?: boolean;
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -38,7 +33,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   secondary: "bg-zinc-700 hover:bg-zinc-800 text-white",
   danger: "bg-red-600 hover:bg-red-700 text-white",
   success: "bg-emerald-600 hover:bg-emerald-700 text-white",
-  outline:"bg-transparent border border-zinc-300 hover:bg-purple-500 text-white",
+  outline: "bg-transparent border border-zinc-300 hover:bg-purple-500 text-white",
   main: "bg-violet-600 hover:bg-violet-500 text-white",
   none: "",
 };
@@ -51,6 +46,7 @@ function BaseButton({
   prepend,
   append,
   children,
+  disabled,
   className = "",
   paddingY = "py-2",
   paddingX = "px-12",
@@ -80,7 +76,12 @@ function BaseButton({
     .replace(/\s+/g, " ");
 
   return (
-    <button className={buttonClassName} type={type} onClick={handleClick} disabled={isLoading}>
+    <button
+      className={buttonClassName}
+      type={type}
+      onClick={handleClick}
+      disabled={isLoading || disabled}
+    >
       {isLoading ? (
         <div className="loader">Loading...</div>
       ) : (

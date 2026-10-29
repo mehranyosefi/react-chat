@@ -1,10 +1,10 @@
 import { Suspense, lazy } from "react";
 import { TabLoaderProps } from "./tabs.type";
-import Loading from "../base/Loading";
+import BaseLoading from "../base/BaseLoading";
 
 const ContactList = lazy(() => import("../contact/ContactList"));
 const ConversationList = lazy(() => import("../conversation/ConversationList"));
-const ChatRoom = lazy(()=> import("../chatRoom/ChatRoom"))
+const ChatRoom = lazy(() => import("../chatRoom/ChatRoom"));
 
 function TabLoader({ component }: TabLoaderProps) {
   let Component;
@@ -26,7 +26,7 @@ function TabLoader({ component }: TabLoaderProps) {
   }
 
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<BaseLoading />}>
       <Component />
     </Suspense>
   );

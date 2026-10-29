@@ -32,7 +32,7 @@ function ChatRoom() {
   const [showScrollBottomButton, setShowScrollBottomButton] = useState(false);
   const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-  const [menuOpenUp , setMenuOpenUp]=useState(false)
+  const [menuOpenUp, setMenuOpenUp] = useState(false);
   const {
     messages,
     loading: isMessagesLoading,
@@ -65,7 +65,7 @@ function ChatRoom() {
         const { data } = await getConversationBycontactId(contactId!);
         if (isMounted) setConversation(data);
       } catch (error) {
-        if(error?.data?.status === 'fail' && error.status === 404) return navigate('/')
+        if (error?.data?.status === "fail" && error.status === 404) return navigate("/");
         console.error(err);
       }
     };
@@ -183,21 +183,21 @@ function ChatRoom() {
     }
   }, [messages, currentUserId]);
 
-  useLayoutEffect(()=>{
+  useLayoutEffect(() => {
     const container = messageContainerRef.current;
-    if(!container) return;
+    if (!container) return;
 
-    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
 
-    if(distanceFromBottom<150){
-      container.scrollTop = container.scrollHeight
+    if (distanceFromBottom < 150) {
+      container.scrollTop = container.scrollHeight;
     }
-  },[editingMessage]);
+  }, [editingMessage]);
 
   // Scroll handler for pagination (fetching older messages when scrolled to top)
   const handleMessagesScroll = () => {
-
-    setMenuMessageId(null)
+    setMenuMessageId(null);
     const container = messageContainerRef.current;
     if (!container) return;
 
@@ -234,12 +234,12 @@ function ChatRoom() {
     shouldScrollToBottomRef.current = true;
 
     if (editingMessage) {
-      if(!conversation?._id) return
-      try{
-        await updateMessage(editingMessage._id, input, conversation?._id );
-      setEditingMessage(null);
-      }catch(error){
-        console.error("Failed to edit message:", error)
+      if (!conversation?._id) return;
+      try {
+        await updateMessage(editingMessage._id, input, conversation?._id);
+        setEditingMessage(null);
+      } catch (error) {
+        console.error("Failed to edit message:", error);
       }
       return;
     }
@@ -284,12 +284,12 @@ function ChatRoom() {
     e.stopPropagation();
 
     const container = messageContainerRef.current;
-    if(container){
+    if (container) {
       const bubble = e.currentTarget.getBoundingClientRect();
       const area = container.getBoundingClientRect();
       const MENU_HEIGHT = 104;
 
-      setMenuOpenUp(bubble.top +MENU_HEIGHT>area.bottom);
+      setMenuOpenUp(bubble.top + MENU_HEIGHT > area.bottom);
     }
     setMenuMessageId(message._id);
   }
@@ -298,20 +298,20 @@ function ChatRoom() {
     const close = () => setMenuMessageId(null);
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
-  },[]);
+  }, []);
 
   async function handleDelete(message: Message) {
-    setMenuMessageId(null)
-    try{
+    setMenuMessageId(null);
+    try {
       await removeMessage(message._id, conversation?._id);
-    }catch(error){
-      console.error("Failed to delete message:", error)
+    } catch (error) {
+      console.error("Failed to delete message:", error);
     }
   }
-  
+
   function handleStartEdit(message: Message) {
     setEditingMessage(message);
-    setMenuMessageId(null)
+    setMenuMessageId(null);
   }
 
   return (
@@ -376,7 +376,9 @@ function ChatRoom() {
           {/* Message bubbles */}
           {messages.map((message) => {
             const isMe = message.sender === currentUserId;
-            const isEdited = !!message.updatedAt && new Date(message.updatedAt).getTime() - new Date(message.createdAt).getTime()>1000;
+            const isEdited =
+              !!message.updatedAt &&
+              new Date(message.updatedAt).getTime() - new Date(message.createdAt).getTime() > 1000;
             return (
               <div
                 key={message._id}
@@ -400,8 +402,9 @@ function ChatRoom() {
 
                 {menuMessageId === message._id && (
                   <div
-                  onClick={e=>e.stopPropagation()}
-                   className={`absolute right-full mr-2 z-50 w-40 h-auto bg-gray-800 text-white rounded-xl p-1 flex flex-col gap-1 ${menuOpenUp ? "bottom-0": "top-0"}`}>
+                    onClick={(e) => e.stopPropagation()}
+                    className={`absolute right-full mr-2 z-50 w-40 h-auto bg-gray-800 text-white rounded-xl p-1 flex flex-col gap-1 ${menuOpenUp ? "bottom-0" : "top-0"}`}
+                  >
                     <BaseButton
                       className="w-full text-left hover:bg-gray-700"
                       variant="none"
@@ -444,24 +447,26 @@ function ChatRoom() {
 
         {/* Input Field */}
         <div className="mx-auto w-full pb-4">
-           {editingMessage && (
-          <div className=" flex items-center justify-between px-4 py-2 mb-1 text-sm text-gray-300 bg-gray-800 rounded-2xl">
-            <span className="truncate">Editing message</span>
-            <BaseButton className="size-7 shrink-0 flex items-center justify-center text-gray-400 hover:text-white bg-gray-600/40"
-              variant="none"
-              rounded="rounded-full"
-              paddingX="0"
-              paddingY="0"
-              emitOnClick={()=>setEditingMessage(null)}
-            >✕</BaseButton>
-          </div>
-
-        )}
+          {editingMessage && (
+            <div className=" flex items-center justify-between px-4 py-2 mb-1 text-sm text-gray-300 bg-gray-800 rounded-2xl">
+              <span className="truncate">Editing message</span>
+              <BaseButton
+                className="size-7 shrink-0 flex items-center justify-center text-gray-400 hover:text-white bg-gray-600/40"
+                variant="none"
+                rounded="rounded-full"
+                paddingX="0"
+                paddingY="0"
+                emitOnClick={() => setEditingMessage(null)}
+              >
+                ✕
+              </BaseButton>
+            </div>
+          )}
           <TextInputModel
-            classes="w-full py-2"
+            classes="grow py-2"
             emitValue={handleSendMessage}
             editValue={editingMessage?.content ?? ""}
-            onCancel={()=>setEditingMessage(null)}
+            onCancel={() => setEditingMessage(null)}
           />
         </div>
       </div>
