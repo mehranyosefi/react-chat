@@ -4,6 +4,7 @@ import BaseButton from "../base/BaseButton";
 import type { EmojiClickData } from "emoji-picker-react";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
+import BaseLoading from "../base/BaseLoading";
 
 function TextInputModel(props: {
   emitValue: (val: string) => void;
@@ -51,7 +52,7 @@ function TextInputModel(props: {
             aria-label="Open emoji picker"
             aria-expanded={emojiPickerOpen}
             emitOnClick={() => setEmojiPickerOpen((open) => !open)}
-            className="text-gray-300 hover:text-purple-500"
+            className={`text-gray-300 hover:text-purple-500 size-6 ${emojiPickerOpen ? "text-purple-500!" : ""}`}
             paddingX="px-0"
             paddingY="py-0"
           >
@@ -61,13 +62,12 @@ function TextInputModel(props: {
           </BaseButton>
 
           {emojiPickerOpen && (
-            <div className="absolute bottom-12 left-0 z-50">
-              <Suspense
-                fallback={
-                  <div className="rounded-lg bg-gray-800 p-4 text-white">Loading emojis...</div>
-                }
-              >
-                <EmojiPicker onEmojiClick={handleEmojiSelect} />
+            <div
+              className="absolute bottom-12 left-0 z-50 max-[400px]:w-[calc(100vw-90px)]
+              "
+            >
+              <Suspense fallback={<BaseLoading />}>
+                <EmojiPicker onEmojiClick={handleEmojiSelect} width="100%" />
               </Suspense>
             </div>
           )}
