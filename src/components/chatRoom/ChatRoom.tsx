@@ -72,7 +72,7 @@ function ChatRoom() {
         const { data } = await getConversationBycontactId(contactId!);
         if (isMounted) setConversation(data);
       } catch (error) {
-        if(error?.data?.status === 'fail' && error.status === 404) return navigate('/')
+        if (error?.data?.status === "fail" && error.status === 404) return navigate("/");
         console.error(err);
       }
     };
@@ -190,20 +190,20 @@ function ChatRoom() {
     }
   }, [messages, currentUserId]);
 
-  useLayoutEffect(()=>{
+  useLayoutEffect(() => {
     const container = messageContainerRef.current;
-    if(!container) return;
+    if (!container) return;
 
-    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
 
-    if(distanceFromBottom<150){
-      container.scrollTop = container.scrollHeight
+    if (distanceFromBottom < 150) {
+      container.scrollTop = container.scrollHeight;
     }
-  },[editingMessage]);
+  }, [editingMessage]);
 
   // Scroll handler for pagination (fetching older messages when scrolled to top)
   const handleMessagesScroll = () => {
-
     const container = messageContainerRef.current;
     if (!container) return;
 
@@ -240,12 +240,12 @@ function ChatRoom() {
     shouldScrollToBottomRef.current = true;
 
     if (editingMessage) {
-      if(!conversation?._id) return
-      try{
-        await updateMessage(editingMessage._id, input, conversation?._id );
-      setEditingMessage(null);
-      }catch(error){
-        console.error("Failed to edit message:", error)
+      if (!conversation?._id) return;
+      try {
+        await updateMessage(editingMessage._id, input, conversation?._id);
+        setEditingMessage(null);
+      } catch (error) {
+        console.error("Failed to edit message:", error);
       }
       return;
     }
@@ -375,7 +375,9 @@ function ChatRoom() {
           {/* Message bubbles */}
           {messages.map((message) => {
             const isMe = message.sender === currentUserId;
-            const isEdited = !!message.updatedAt && new Date(message.updatedAt).getTime() - new Date(message.createdAt).getTime()>1000;
+            const isEdited =
+              !!message.updatedAt &&
+              new Date(message.updatedAt).getTime() - new Date(message.createdAt).getTime() > 1000;
             return (
               <div
                 key={message._id}
@@ -417,24 +419,26 @@ function ChatRoom() {
 
         {/* Input Field */}
         <div className="mx-auto w-full pb-4">
-           {editingMessage && (
-          <div className=" flex items-center justify-between px-4 py-2 mb-1 text-sm text-gray-300 bg-gray-800 rounded-2xl">
-            <span className="truncate">Editing message</span>
-            <BaseButton className="size-7 shrink-0 flex items-center justify-center text-gray-400 hover:text-white bg-gray-600/40"
-              variant="none"
-              rounded="rounded-full"
-              paddingX="0"
-              paddingY="0"
-              emitOnClick={()=>setEditingMessage(null)}
-            >✕</BaseButton>
-          </div>
-
-        )}
+          {editingMessage && (
+            <div className=" flex items-center justify-between px-4 py-2 mb-1 text-sm text-gray-300 bg-gray-800 rounded-2xl">
+              <span className="truncate">Editing message</span>
+              <BaseButton
+                className="size-7 shrink-0 flex items-center justify-center text-gray-400 hover:text-white bg-gray-600/40"
+                variant="none"
+                rounded="rounded-full"
+                paddingX="0"
+                paddingY="0"
+                emitOnClick={() => setEditingMessage(null)}
+              >
+                ✕
+              </BaseButton>
+            </div>
+          )}
           <TextInputModel
-            classes="w-full py-2"
+            classes="grow py-2"
             emitValue={handleSendMessage}
             editValue={editingMessage?.content ?? ""}
-            onCancel={()=>setEditingMessage(null)}
+            onCancel={() => setEditingMessage(null)}
           />
         </div>
       </div>
