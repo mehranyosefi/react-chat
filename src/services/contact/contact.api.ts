@@ -1,4 +1,5 @@
 import { apiClient } from "../../features/api/apiClient";
+import { ApiRequestConfig } from "../../features/api/apiClient.type";
 import {
   ContactsResponse,
   ContactResponse,
@@ -12,15 +13,14 @@ export function getContacts(): Promise<ContactsResponse> {
   });
 }
 
-export function getContactById(id: string): Promise<ContactResponse> {
+export function getContactById(id: string, config?: ApiRequestConfig): Promise<ContactResponse> {
   return apiClient<ContactResponse>(`contacts/${id}`, {
+    ...config,
     authorizationRequired: true,
   });
 }
 
-export function createContact(
-  payload: CreateContactPayload,
-): Promise<ContactResponse> {
+export function createContact(payload: CreateContactPayload): Promise<ContactResponse> {
   return apiClient<ContactResponse>("contacts", {
     method: "POST",
     body: payload,
@@ -28,10 +28,7 @@ export function createContact(
   });
 }
 
-export function updateContact(
-  id: string,
-  payload: UpdateContactPayload,
-): Promise<ContactResponse> {
+export function updateContact(id: string, payload: UpdateContactPayload): Promise<ContactResponse> {
   return apiClient<ContactResponse>(`contacts/${id}`, {
     method: "PATCH",
     body: payload,

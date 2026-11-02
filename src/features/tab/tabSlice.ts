@@ -18,6 +18,10 @@ const initialState: TabState = {
       id: "contacts",
       component: "ContactList",
     },
+    {
+      id: "chatroom",
+      component: "ChatRoom",
+    },
   ],
 
   activeTabId: "conversations",
@@ -31,7 +35,6 @@ const tabSlice = createSlice({
   reducers: {
     pushTab(state, action: PayloadAction<string>) {
       const tabId = action.payload;
-
       if (state.activeTabId === tabId) return;
 
       state.history.push(tabId);
@@ -39,14 +42,24 @@ const tabSlice = createSlice({
       state.animation = "forward";
     },
     popTab(state) {
+      if (state.history.length <= 1 && state.activeTabId === "contacts") {
+        state.activeTabId = "conversations";
+        return;
+      }
       if (state.history.length <= 1) return;
 
       state.history.pop();
       state.activeTabId = state.history[state.history.length - 1];
       state.animation = "backward";
     },
+    setIntitailTab(state, action: PayloadAction<string>) {
+      const tabId = action.payload;
+      state.activeTabId = tabId;
+      state.history = [tabId];
+      state.animation = "backward";
+    },
   },
 });
 
-export const { pushTab, popTab } = tabSlice.actions;
+export const { pushTab, popTab, setIntitailTab } = tabSlice.actions;
 export default tabSlice.reducer;

@@ -17,7 +17,7 @@ export function useContacts() {
   const dispatch = useAppDispatch();
   const { contacts, status, error } = useAppSelector((state) => state.contact);
 
-  const refresh = useCallback(
+  const getContacts = useCallback(
     (force: boolean = false) => {
       return dispatch(getContactsThunk({ force }));
     },
@@ -48,7 +48,7 @@ export function useContacts() {
     loading: status === "loading",
     isIdle: status === "idle",
     error,
-    refresh,
+    getContacts,
     createContact,
     updateContact,
     deleteContact,

@@ -11,135 +11,117 @@ import { setUserInfo } from "../features/user/userSlice";
 import { ApiError } from "../features/api/apiClient.type";
 
 function SignUp() {
-    const [errors, setErrors] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const access_token = getAccessToken()
-    async function formSubmit(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        setErrors("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const access_token = getAccessToken();
+  async function formSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setErrors("");
 
-        const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);
 
-        const name = String(formData.get("name") ?? "");
-        const email = String(formData.get("email") ?? "");
-        const password = String(formData.get("password") ?? "");
-        const passwordConfirm = String(
-            formData.get("passwordConfirm") ?? ""
-        );
+    const name = String(formData.get("name") ?? "");
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+    const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
 
-        // Client-side validation
-        if (password !== passwordConfirm) {
-            setErrors("Passwords do not match");
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const res = await signup({
-                name,
-                email,
-                password,
-                passwordConfirm,
-            });
-
-            const { user, session } = res.data;
-            setTokens(session);
-            dispatch(
-                setUserInfo({
-                    email: user.email,
-                    name: user.name,
-                })
-            );
-            navigate("/", { replace: true });
-        } catch (error) {
-            // if (error instanceof ApiError) {
-            const apiError = error as ApiError;
-            setErrors(apiError.message);
-        } finally {
-            setLoading(false);
-        }
-    }
-    if (access_token) {
-        return <Navigate to="/" replace />;
+    // Client-side validation
+    if (password !== passwordConfirm) {
+      setErrors("Passwords do not match");
+      return;
     }
 
+    try {
+      setLoading(true);
+      const res = await signup({
+        name,
+        email,
+        password,
+        passwordConfirm,
+      });
 
-    return (
-        <div className="flex items-center justify-center h-screen">
-            <div className="rounded-xl p-5 md:p-10 bg-gray-900/90">
-                <h1 className="font-semibold text-xl">
-                    Create Account
-                </h1>
+      const { user, session } = res.data;
+      setTokens(session);
+      dispatch(
+        setUserInfo({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        })
+      );
+      navigate("/", { replace: true });
+    } catch (error) {
+      // if (error instanceof ApiError) {
+      const apiError = error as ApiError;
+      setErrors(apiError.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+  if (access_token) {
+    return <Navigate to="/" replace />;
+  }
 
-                <form
-                    onSubmit={formSubmit}
-                    className="pt-4 mt-5 flex flex-col gap-y-7"
-                >
-                    <BaseInput
-                        label="name"
-                        name="name"
-                        className="w-full flex items-center gap-x-3"
-                        type="text"
-                        required
-                        autoFocus
-                    />
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="rounded-xl p-5 md:p-10 bg-gray-900/90">
+        <h1 className="font-semibold text-xl">Create Account</h1>
 
-                    <BaseInput
-                        label="email"
-                        name="email"
-                        className="w-full flex items-center gap-x-3"
-                        type="email"
-                        required
-                    />
+        <form onSubmit={formSubmit} className="pt-4 mt-5 flex flex-col gap-y-7">
+          <BaseInput
+            label="name"
+            name="name"
+            className="w-full flex items-center gap-x-3"
+            type="text"
+            required
+            autoFocus
+          />
 
-                    <BaseInput
-                        label="password"
-                        name="password"
-                        className="w-full flex items-center gap-x-3"
-                        type="password"
-                        required
-                        minLength={8}
-                    />
+          <BaseInput
+            label="email"
+            name="email"
+            className="w-full flex items-center gap-x-3"
+            type="email"
+            required
+          />
 
-                    <BaseInput
-                        label="confirm password"
-                        name="passwordConfirm"
-                        className="w-full flex items-center gap-x-3"
-                        type="password"
-                        required
-                        minLength={8}
-                    />
+          <BaseInput
+            label="password"
+            name="password"
+            className="w-full flex items-center gap-x-3"
+            type="password"
+            required
+            minLength={8}
+          />
 
-                    <BaseButton
-                        type="submit"
-                        variant="outline"
-                        isLoading={loading}
-                    >
-                        SignUp
-                    </BaseButton>
+          <BaseInput
+            label="confirm password"
+            name="passwordConfirm"
+            className="w-full flex items-center gap-x-3"
+            type="password"
+            required
+            minLength={8}
+          />
 
-                    <p>
-                       Already have an account?{" "}
-                        <Link
-                            to="/login"
-                            className="text-purple-500"
-                        >
-                            Log in
-                        </Link>
-                    </p>
+          <BaseButton type="submit" variant="outline" isLoading={loading}>
+            SignUp
+          </BaseButton>
 
-                    {errors && (
-                        <span className="text-sm text-red-500">
-                            {errors}
-                        </span>
-                    )}
-                </form>
-            </div>
-        </div>
-    );
+          <p>
+            Already have an account?{" "}
+            <Link to="/login" className="text-purple-500">
+              Log in
+            </Link>
+          </p>
+
+          {errors && <span className="text-sm text-red-500">{errors}</span>}
+        </form>
+      </div>
+    </div>
+  );
 }
 
 export default SignUp;

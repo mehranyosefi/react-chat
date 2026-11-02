@@ -9,104 +9,89 @@ import { setUserInfo } from "../features/user/userSlice";
 import { ApiError } from "../features/api/apiClient.type";
 
 function Login() {
-    const access_token = getAccessToken()
+  const access_token = getAccessToken();
 
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-    const [errors, setErrors] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    async function formSubmit(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        setErrors("");
-        const formData = new FormData(e.currentTarget);
-        const email = String(formData.get("email") ?? "");
-        const password = String(formData.get("password") ?? "");
+  async function formSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setErrors("");
+    const formData = new FormData(e.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
 
-        try {
-            setLoading(true);
-            const res = await login({
-                email,
-                password,
-            });
-            const { user, session } = res.data;
-            setTokens(session);
-            dispatch(
-                setUserInfo({
-                    email: user.email,
-                    name: user.name,
-                }),
-            );
-            navigate("/", { replace: true });
-        } catch (error) {
-            const apiError = error as ApiError;
-            setErrors(apiError.message);
-        } finally {
-            setLoading(false);
-        }
+    try {
+      setLoading(true);
+      const res = await login({
+        email,
+        password,
+      });
+      const { user, session } = res.data;
+      setTokens(session);
+      dispatch(
+        setUserInfo({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        })
+      );
+      navigate("/", { replace: true });
+    } catch (error) {
+      const apiError = error as ApiError;
+      setErrors(apiError.message);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    if (access_token) {
-        return <Navigate to="/" replace />;
-    }
+  if (access_token) {
+    return <Navigate to="/" replace />;
+  }
 
-    return (
-        <div className="flex items-center justify-center h-screen">
-            <div className="rounded-xl p-5 md:p-10 bg-gray-900/90">
-                <h1 className="font-semibold text-xl">
-                    Your welcome
-                </h1>
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="rounded-xl p-5 md:p-10 bg-gray-900/90">
+        <h1 className="font-semibold text-xl">Your welcome</h1>
 
-                <form
-                    onSubmit={formSubmit}
-                    className="pt-4 mt-5 flex flex-col gap-y-7"
-                >
-                    <BaseInput
-                        label="email"
-                        name="email"
-                        className="w-full flex items-center gap-x-3"
-                        type="email"
-                        required
-                        autoFocus
-                    />
+        <form onSubmit={formSubmit} className="pt-4 mt-5 flex flex-col gap-y-7">
+          <BaseInput
+            label="email"
+            name="email"
+            className="w-full flex items-center gap-x-3"
+            type="email"
+            required
+            autoFocus
+          />
 
-                    <BaseInput
-                        label="password"
-                        name="password"
-                        className="w-full flex items-center gap-x-3"
-                        type="password"
-                        required
-                        minLength={8}
-                    />
+          <BaseInput
+            label="password"
+            name="password"
+            className="w-full flex items-center gap-x-3"
+            type="password"
+            required
+            minLength={8}
+          />
 
-                    <BaseButton
-                        type="submit"
-                        variant="outline"
-                        isLoading={loading}
-                    >
-                        SignIn
-                    </BaseButton>
+          <BaseButton type="submit" variant="outline" isLoading={loading}>
+            SignIn
+          </BaseButton>
 
-                    <p>
-                        Don't have an account?{" "}
-                        <Link
-                            to="/signup"
-                            className="text-purple-500"
-                        >
-                            Sign up
-                        </Link>
-                    </p>
+          <p>
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-purple-500">
+              Sign up
+            </Link>
+          </p>
 
-                    {errors && (
-                        <span className="text-sm text-red-500">
-                            {errors}
-                        </span>
-                    )}
-                </form>
-            </div>
-        </div>
-    );
+          {errors && <span className="text-sm text-red-500">{errors}</span>}
+        </form>
+      </div>
+    </div>
+  );
 }
 
 export default Login;

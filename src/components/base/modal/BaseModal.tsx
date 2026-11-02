@@ -96,7 +96,7 @@ export const BaseModal: React.FC<ModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Body */}
-        <div className="rounded-xl bg-gray-900/80 p-5">
+        <div className="rounded-xl bg-gray-800/80 p-5">
           {/* Header */}
           <div className="flex items-center justify-between pb-4">
             {title && (
