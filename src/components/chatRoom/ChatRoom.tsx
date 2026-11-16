@@ -72,7 +72,7 @@ function ChatRoom() {
         const { data } = await getConversationBycontactId(contactId!);
         if (isMounted) setConversation(data);
       } catch (error) {
-        if (error?.data?.status === "fail" && error.status === 404) return navigate("/");
+        // if (error?.data?.status === "fail" && error.status === 404) return navigate("/");
         console.error(err);
       }
     };
