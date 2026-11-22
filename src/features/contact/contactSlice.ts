@@ -138,7 +138,12 @@ const contactSlice = createSlice({
       })
       .addCase(createContactThunk.fulfilled, (state, action) => {
         state.createStatus = "succeeded";
-        state.contacts.push(action.payload);
+        state.contacts.push({
+          ...action.payload,
+          contact: {
+            _id: action.payload.contact
+          }
+        });
       })
       .addCase(createContactThunk.rejected, (state, action) => {
         state.createStatus = "failed";

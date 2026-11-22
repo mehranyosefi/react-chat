@@ -73,7 +73,7 @@ function ChatRoom() {
         if (isMounted) setConversation(data);
       } catch (error) {
         // if (error?.data?.status === "fail" && error.status === 404) return navigate("/");
-        console.error(err);
+        console.error(error);
       }
     };
 
@@ -249,17 +249,18 @@ function ChatRoom() {
       }
       return;
     }
-
     try {
+      let cId = conversation?._id;
       // check if conversation exist
       if (!conversation?._id) {
         const { data } = await createConversation(contactId!);
         setConversation(data);
+        cId = data._id
         //Jonin to conversation with ws
         joinToConversation(data._id);
       }
       sendMessage(input, {
-        conversationId: conversation?._id,
+        conversationId: cId,
         currentUserId: currentUserId,
       });
     } catch (error) {
