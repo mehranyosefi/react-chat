@@ -55,11 +55,11 @@ function Login() {
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="rounded-xl p-5 md:p-10 bg-gray-900/90">
-        <h1 className="font-semibold text-xl">Your welcome</h1>
+        <h1 className="font-semibold text-xl">Your Welcome!</h1>
 
         <form onSubmit={formSubmit} className="pt-4 mt-5 flex flex-col gap-y-7">
           <BaseInput
-            label="email"
+            label="Email"
             name="email"
             className="w-full flex items-center gap-x-3"
             type="email"
@@ -68,7 +68,7 @@ function Login() {
           />
 
           <BaseInput
-            label="password"
+            label="Password"
             name="password"
             className="w-full flex items-center gap-x-3"
             type="password"
@@ -77,7 +77,7 @@ function Login() {
           />
 
           <BaseButton type="submit" variant="outline" isLoading={loading}>
-            SignIn
+            Sign in
           </BaseButton>
 
           <p>
