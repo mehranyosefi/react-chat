@@ -5,7 +5,6 @@ function BaseInput(props: BaseInputProps) {
     const { model, updateModel, type = 'text', label = '', value = '', checked = false, errorMessage = '',
         children, prepend = null, append = null, className = '', ...rest } = props;
     const [active, setActive] = useState<boolean>(false);
-    const [showPassword, setShowPassword] = useState(false);
 
     function handleUpdateModel(val: string | number | boolean) {
         updateModel?.(val)
@@ -46,28 +45,16 @@ function BaseInput(props: BaseInputProps) {
                                     {...rest}
                                 />
                                 :
-                           
-<>
-    <input
-        type={type === 'password' && showPassword ? 'text' : type}
-        value={model}
-        onInput={(e) => handleUpdateModel((e.target as HTMLInputElement).value)}
-        className="outline-none p-2 grow rounded-xl text-sm"
-        {...rest}
-    />
-    {type === 'password' && (
-        <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="px-2 text-purple-600"
-            aria-label={showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'}
-        >
-         👁
-        </button>
-    )}
-</>
+                                <input
+                                    type={type}
+                                    value={model}
+                                    onInput={(e) => handleUpdateModel((e.target as HTMLInputElement).value)}
+                                    className="outline-none p-2 grow rounded-xl text-sm"
+                                    {...rest}
+                                />
+
                 }
-                  {append && append}
+                {append && append}
             </div>
         </div>
     );
