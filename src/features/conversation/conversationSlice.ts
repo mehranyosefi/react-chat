@@ -130,7 +130,9 @@ export const deleteConversationThunk = createAsyncThunk<string, string, { reject
 const conversationSlice = createSlice({
   name: "conversation",
   initialState,
-  reducers: {},
+  reducers: {
+    resetConversations: () => initialState,
+  },
   extraReducers: (builder) => {
     builder
       //Fetch
@@ -174,5 +176,5 @@ const conversationSlice = createSlice({
       });
   },
 });
-
+export const { resetConversations } = conversationSlice.actions;
 export default conversationSlice.reducer;

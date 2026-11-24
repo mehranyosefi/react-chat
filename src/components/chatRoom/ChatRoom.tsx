@@ -1,4 +1,4 @@
-import { lazy , Suspense , useCallback ,useEffect, useState, useRef, useLayoutEffect } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Conversation } from "../../services/conversation/conversation.type";
 import {
@@ -16,8 +16,9 @@ import { useConversations } from "../../features/conversation/useConversation";
 import BaseButton from "../base/BaseButton";
 import { popTab } from "../../features/tab/tabSlice";
 import { useMediaQuery } from "../../features/media/useMediaQuery";
-const BaseMenu = lazy(()=>import("../base/menu/BaseMenu"));
-const ConfirmModal = lazy(()=>import("../base/modal/ConfirmModal"));
+import { resetMessages } from "../../features/message/messageSlice";
+const BaseMenu = lazy(() => import("../base/menu/BaseMenu"));
+const ConfirmModal = lazy(() => import("../base/modal/ConfirmModal"));
 
 function ChatRoom() {
   const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
@@ -25,7 +26,7 @@ function ChatRoom() {
   const [contact, setContact] = useState<User>();
   const [conversation, setConversation] = useState<Conversation>();
   const currentUserId = useAppSelector((state) => state?.user?.id);
-  const { joinToConversation, leaveConversation } = useConversations();
+  const { joinToConversation, leaveConversation, getConversations } = useConversations();
   const isSocketConnected = useAppSelector((state) => state.socket.connected);
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -33,13 +34,13 @@ function ChatRoom() {
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const initialScrollConversationIdRef = useRef<string | null>(null);
   const [showScrollBottomButton, setShowScrollBottomButton] = useState(false);
-  const [menu, setMenu] = useState<{message:Message; x:number; y:number} | null>(null);
+  const [menu, setMenu] = useState<{ message: Message; x: number; y: number } | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-  const [deletingMessage , setDeletingMessage]=useState<Message | null>(null)
-  const [isDeleting , setIsDeleting]= useState(false);
-  const closeMenu = useCallback(()=>setMenu(null), []);
-  const isDesktop = useMediaQuery("(min-width: 768px)")
-  
+  const [deletingMessage, setDeletingMessage] = useState<Message | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const closeMenu = useCallback(() => setMenu(null), []);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
   const {
     messages,
     loading: isMessagesLoading,
@@ -65,6 +66,7 @@ function ChatRoom() {
 
   //Fetch conversation and join to that
   useEffect(() => {
+    setConversation(undefined);
     let isMounted = true;
 
     const handleFetchData = async () => {
@@ -123,10 +125,13 @@ function ChatRoom() {
 
   //Fetch messages once conversation is loaded
   useEffect(() => {
-    if (conversation?._id) {
-      getMessages(false, conversation._id, 20);
+    if (!conversation?._id) {
+      dispatch(resetMessages());
+      return;
     }
-  }, [conversation?._id, getMessages]);
+
+    getMessages(false, conversation._id, 20);
+  }, [conversation?._id, contactId, getMessages, dispatch]);
 
   // Initial scroll to bottom when messages are first loaded for a conversation
   useLayoutEffect(() => {
@@ -255,7 +260,9 @@ function ChatRoom() {
       if (!conversation?._id) {
         const { data } = await createConversation(contactId!);
         setConversation(data);
-        cId = data._id
+        cId = data._id;
+        //TODO trigger fetch conversation list for show new converstaion reactivity
+        getConversations();
         //Jonin to conversation with ws
         joinToConversation(data._id);
       }
@@ -285,31 +292,30 @@ function ChatRoom() {
     setShowScrollBottomButton(false);
   };
 
-  function openMenu(e:React.MouseEvent, message:Message){
-   if(message.sender !== currentUserId) return;
-   e.preventDefault();
-   setMenu({message, x:e.clientX, y:e.clientY})
+  function openMenu(e: React.MouseEvent, message: Message) {
+    if (message.sender !== currentUserId) return;
+    e.preventDefault();
+    setMenu({ message, x: e.clientX, y: e.clientY });
   }
-
 
   function handleDelete(message: Message) {
     setDeletingMessage(message);
   }
 
-  async function handleConfirmDelete(){
-      if(!deletingMessage) return
-      setIsDeleting(true)
+  async function handleConfirmDelete() {
+    if (!deletingMessage) return;
+    setIsDeleting(true);
 
-    try{
+    try {
       await removeMessage(deletingMessage._id, conversation?._id);
       setDeletingMessage(null);
-    }catch(error){
+    } catch (error) {
       console.error("Failed to delete message:", error);
-    }finally{
+    } finally {
       setIsDeleting(false);
     }
-    }
-  
+  }
+
   function handleStartEdit(message: Message) {
     setEditingMessage(message);
   }
@@ -383,7 +389,7 @@ function ChatRoom() {
               <div
                 key={message._id}
                 onClick={(e) => !isDesktop && openMenu(e, message)}
-                onContextMenu={(e)=>isDesktop && openMenu(e, message)}
+                onContextMenu={(e) => isDesktop && openMenu(e, message)}
                 className={` relative max-w-[75%] px-4 py-2 rounded-2xl cursor-pointer ${
                   isMe
                     ? "self-end bg-blue-600 text-white rounded-br-none"
@@ -443,28 +449,28 @@ function ChatRoom() {
           />
         </div>
       </div>
-        {menu && (
-          <Suspense fallback={null}>
-                  <BaseMenu
-                  position={{x:menu?.x, y:menu.y}}
-                  onClose={closeMenu}
-                  backdrop={false}
-                  items={[
-                    {label:"Edit" , onClick:()=>handleStartEdit(menu.message)},
-                    {label:"Delete", onClick:()=>handleDelete(menu.message),danger:true}
-                  ]}
-                  ></BaseMenu>
-                 </Suspense>
-        )}
+      {menu && (
+        <Suspense fallback={null}>
+          <BaseMenu
+            position={{ x: menu?.x, y: menu.y }}
+            onClose={closeMenu}
+            backdrop={false}
+            items={[
+              { label: "Edit", onClick: () => handleStartEdit(menu.message) },
+              { label: "Delete", onClick: () => handleDelete(menu.message), danger: true },
+            ]}
+          ></BaseMenu>
+        </Suspense>
+      )}
 
       {deletingMessage && (
         <Suspense fallback={null}>
           <ConfirmModal
-          isOpen
-          message="Are you sure you want to delete this message?"
-          isLoading={isDeleting}
-          onConfirm={handleConfirmDelete}
-          onClose={()=>setDeletingMessage(null)}
+            isOpen
+            message="Are you sure you want to delete this message?"
+            isLoading={isDeleting}
+            onConfirm={handleConfirmDelete}
+            onClose={() => setDeletingMessage(null)}
           />
         </Suspense>
       )}

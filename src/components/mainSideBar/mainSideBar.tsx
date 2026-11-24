@@ -1,18 +1,18 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
-import { logout } from "../../services/auth/auth.api";
-import { clearUser } from "../../features/user/userSlice";
+// import { logout } from "../../services/auth/auth.api";
 import BaseButton from "../base/BaseButton";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { popTab, pushTab } from "../../features/tab/tabSlice";
-import { resetContacts } from "../../features/contact/contactSlice";
 import Tabs from "../tabs/Tabs";
 import CreateContactForm from "../contact/CreateContactForm";
 import { BaseModal } from "../base/modal/BaseModal";
 import { ApiError } from "../../features/api/apiClient.type";
 import { useMediaQuery } from "../../features/media/useMediaQuery";
+import { logout } from "../../features/auth/authSlice";
+
 function LeftSideBar() {
   const navigate = useNavigate();
   const [showOptionMenu, setShowOptionMenu] = useState<boolean>(false);
@@ -25,16 +25,12 @@ function LeftSideBar() {
   const isSubTab = activeTabId === "contacts" || activeTabId === "chatroom";
 
   useOutsideClick(optionMenuRef, () => setShowOptionMenu(false));
-  async function handleLogOut() {
+  function handleLogOut() {
     try {
       //TODO handle logout service
-      // await logout();
-
+      dispatch(logout());
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
-
-      dispatch(clearUser());
-      dispatch(resetContacts());
 
       navigate("/login");
     } catch (error) {

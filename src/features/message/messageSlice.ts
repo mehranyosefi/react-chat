@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, nanoid, PayloadAction } from "@reduxjs/t
 import type { RootState } from "../../store";
 import type { Message } from "../../services/message/message.type";
 import type { MessagesState, MessageEntity } from "./index.type";
-import {getMessagesByConversation} from "../../services/message/message.api";
+import { getMessagesByConversation } from "../../services/message/message.api";
 import { emitWithTimeout } from "../socket/socket";
 
 function getErrorMessage(error: unknown): string {
@@ -144,18 +144,18 @@ export const sendMessageThunk = createAsyncThunk<
 
 /** Update message */
 export const updateMessageThunk = createAsyncThunk<
-  { conversationId:string; messageId: string; content: string },
-  { conversationId:string; messageId: string; content: string },
+  { conversationId: string; messageId: string; content: string },
+  { conversationId: string; messageId: string; content: string },
   { rejectValue: { messageId: string; message: string } }
->("message/updateMessage", async ({ conversationId , messageId, content }, { rejectWithValue }) => {
+>("message/updateMessage", async ({ conversationId, messageId, content }, { rejectWithValue }) => {
   try {
-    console.log("sending edit:", {conversationId, messageId, content})
-     await emitWithTimeout<{ message: Message }>("message:edit" , {
+    console.log("sending edit:", { conversationId, messageId, content });
+    await emitWithTimeout<{ message: Message }>("message:edit", {
       conversationId,
       messageId,
       content,
     });
-    return {conversationId ,messageId , content}
+    return { conversationId, messageId, content };
   } catch (error) {
     return rejectWithValue({ messageId, message: getErrorMessage(error) });
   }
@@ -168,7 +168,7 @@ export const deleteMessageThunk = createAsyncThunk<
   { rejectValue: { messageId: string; message: string } }
 >("message/deleteMessage", async ({ messageId, conversationId }, { rejectWithValue }) => {
   try {
-    await emitWithTimeout("message:delete" , {messageId, conversationId});
+    await emitWithTimeout("message:delete", { messageId, conversationId });
     return { messageId, conversationId };
   } catch (error) {
     return rejectWithValue({ messageId, message: getErrorMessage(error) });
@@ -235,19 +235,22 @@ const messageSlice = createSlice({
     },
 
     //updated message received from ws
-    receiveUpdatedMessage:(state, action:PayloadAction<Message>)=>{
+    receiveUpdatedMessage: (state, action: PayloadAction<Message>) => {
       const updated = action.payload;
-      const list = state.byConversationId[updated.conversation]??[]
-      const idx = list.findIndex((m)=>m._id === updated._id)
-      if(idx>=0) list[idx] = {...list[idx], ...updated}
+      const list = state.byConversationId[updated.conversation] ?? [];
+      const idx = list.findIndex((m) => m._id === updated._id);
+      if (idx >= 0) list[idx] = { ...list[idx], ...updated };
     },
 
     //deleted message received from ws
-    receiveDeletedMessage:(state , action:PayloadAction<{messageId:string; conversationId:string}>)=>{
-      const {messageId , conversationId} = action.payload;
-      state.byConversationId[conversationId]=(
+    receiveDeletedMessage: (
+      state,
+      action: PayloadAction<{ messageId: string; conversationId: string }>
+    ) => {
+      const { messageId, conversationId } = action.payload;
+      state.byConversationId[conversationId] = (
         state.byConversationId[conversationId] ?? []
-      ).filter((m)=>m._id !== messageId)
+      ).filter((m) => m._id !== messageId);
     },
 
     /**
@@ -263,6 +266,13 @@ const messageSlice = createSlice({
       ).filter((m) => m.userId !== userId);
       delete state.sendStatusByUserId[userId];
       delete state.sendErrorByUserId[userId];
+    },
+    resetMessages: (state) => {
+      state.byConversationId = {};
+      state.hasMoreByConversationId = {};
+      state.olderMessagesStatusByConversationId = {};
+      state.fetchStatusByConversationId = {};
+      state.fetchErrorByConversationId = {};
     },
   },
   extraReducers: (builder) => {
@@ -350,14 +360,14 @@ const messageSlice = createSlice({
         state.updateErrorByMessageId[messageId] = null;
       })
       .addCase(updateMessageThunk.fulfilled, (state, action) => {
-        const {conversationId , messageId , content}=action.payload;
-        
+        const { conversationId, messageId, content } = action.payload;
+
         state.updateStatusByMessageId[messageId] = "succeeded";
-        state.updateErrorByMessageId[messageId]= null;
+        state.updateErrorByMessageId[messageId] = null;
 
         const list = state.byConversationId[conversationId] ?? [];
         const msg = list.find((m) => m._id === messageId);
-        if (msg){
+        if (msg) {
           msg.content = content;
           msg.pending = false;
           msg.error = null;
@@ -395,5 +405,12 @@ const messageSlice = createSlice({
   },
 });
 
-export const { addOptimisticMessage, removeMessageByUserId, receiveMessage , receiveUpdatedMessage , receiveDeletedMessage } = messageSlice.actions;
+export const {
+  addOptimisticMessage,
+  removeMessageByUserId,
+  receiveMessage,
+  receiveUpdatedMessage,
+  receiveDeletedMessage,
+  resetMessages,
+} = messageSlice.actions;
 export default messageSlice.reducer;
