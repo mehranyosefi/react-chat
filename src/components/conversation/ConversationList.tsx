@@ -2,6 +2,7 @@ import { useConversations } from "../../features/conversation/useConversation";
 import { useEffect } from "react";
 import ConversationItem from "./ConversationItem";
 import { getAccessToken } from "../../utility/auth/tokenStorage";
+import ConversationEmptyState from "./ConversationEmptyState";
 
 export default function ConversationList() {
   const { conversations, loading, error, status, getConversations } = useConversations();
@@ -15,12 +16,12 @@ export default function ConversationList() {
   }, [status, getConversations]);
 
   return (
-    <div>
+    <div className="h-full">
       {loading && <div className="flex justify-center py-5">Loading...</div>}
       {error && <div>{error}</div>}
-      <ul>
-        {conversations &&
-          conversations.map((conversation) => {
+      {conversations.length ? (
+        <ul>
+          {conversations.map((conversation) => {
             return (
               <ConversationItem
                 key={conversation._id}
@@ -30,7 +31,10 @@ export default function ConversationList() {
               />
             );
           })}
-      </ul>
+        </ul>
+      ) : (
+        <ConversationEmptyState />
+      )}
     </div>
   );
 }

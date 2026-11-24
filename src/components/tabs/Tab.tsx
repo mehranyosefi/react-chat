@@ -12,7 +12,7 @@ function Tab({ tabs, activeTabId, animation }: TabProps) {
       : "animation-slide-right");
 
   return (
-    <div className={animationClass}>
+    <div className={`h-[calc(100%-150px)] ${animationClass}`}>
       <TabLoader component={currentTab.component} />
     </div>
   );

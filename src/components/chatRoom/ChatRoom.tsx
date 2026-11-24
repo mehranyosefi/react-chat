@@ -17,6 +17,7 @@ import BaseButton from "../base/BaseButton";
 import { popTab } from "../../features/tab/tabSlice";
 import { useMediaQuery } from "../../features/media/useMediaQuery";
 import { resetMessages } from "../../features/message/messageSlice";
+import { createConversationThunk } from "../../features/conversation/conversationSlice";
 const BaseMenu = lazy(() => import("../base/menu/BaseMenu"));
 const ConfirmModal = lazy(() => import("../base/modal/ConfirmModal"));
 
@@ -26,7 +27,7 @@ function ChatRoom() {
   const [contact, setContact] = useState<User>();
   const [conversation, setConversation] = useState<Conversation>();
   const currentUserId = useAppSelector((state) => state?.user?.id);
-  const { joinToConversation, leaveConversation, getConversations } = useConversations();
+  const { joinToConversation, leaveConversation, getConversations, createConversation } = useConversations();
   const isSocketConnected = useAppSelector((state) => state.socket.connected);
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -243,9 +244,7 @@ function ChatRoom() {
     if (!input.trim()) return;
 
     shouldScrollToBottomRef.current = true;
-
     if (editingMessage) {
-      if (!conversation?._id) return;
       try {
         await updateMessage(editingMessage._id, input, conversation?._id);
         setEditingMessage(null);
@@ -258,13 +257,13 @@ function ChatRoom() {
       let cId = conversation?._id;
       // check if conversation exist
       if (!conversation?._id) {
-        const { data } = await createConversation(contactId!);
-        setConversation(data);
-        cId = data._id;
-        //TODO trigger fetch conversation list for show new converstaion reactivity
-        getConversations();
+        // const { data } = await createConversation(contactId!);
+        //TODO return main info of contact in create conversation's response
+        const res = await createConversation(contactId!)
+        setConversation(res);
+        cId = res._id;
         //Jonin to conversation with ws
-        joinToConversation(data._id);
+        joinToConversation(res._id);
       }
       sendMessage(input, {
         conversationId: cId,
