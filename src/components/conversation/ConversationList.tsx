@@ -1,16 +1,18 @@
 import { useConversations } from "../../features/conversation/useConversation";
 import { useEffect } from "react";
 import ConversationItem from "./ConversationItem";
+import { getAccessToken } from "../../utility/auth/tokenStorage";
 
 export default function ConversationList() {
   const { conversations, loading, error, status, getConversations } = useConversations();
 
   useEffect(() => {
+    if (!getAccessToken()) return;
+
     if (status === "idle") {
       getConversations();
     }
   }, [status, getConversations]);
-
 
   return (
     <div>
