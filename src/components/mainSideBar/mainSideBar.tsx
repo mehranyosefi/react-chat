@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useOutsideClick } from "../../features/hooks/useOutsideClick";
 // import { logout } from "../../services/auth/auth.api";
@@ -12,8 +12,11 @@ import { BaseModal } from "../base/modal/BaseModal";
 import { ApiError } from "../../features/api/apiClient.type";
 import { useMediaQuery } from "../../features/media/useMediaQuery";
 import { logout } from "../../features/auth/authSlice";
+import { useConversations } from "../../features/conversation/useConversation";
+import { useContacts } from "../../features/contact/useContacts";
+import { CreateContactContext } from "../contact/CreateContactContext";
 
-function LeftSideBar() {
+function MainSideBar() {
   const navigate = useNavigate();
   const [showOptionMenu, setShowOptionMenu] = useState<boolean>(false);
   // const { session } = useSelector(store => store.user);
@@ -23,6 +26,8 @@ function LeftSideBar() {
   const activeTabId = useSelector((state: RootState) => state.tab.activeTabId);
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const isSubTab = activeTabId === "contacts" || activeTabId === "chatroom";
+  const { conversations } = useConversations();
+  const { contacts } = useContacts();
 
   useOutsideClick(optionMenuRef, () => setShowOptionMenu(false));
   function handleLogOut() {
@@ -44,6 +49,10 @@ function LeftSideBar() {
       navigate("/");
     }
   }
+  const openCreateContact = () => {
+    setCreateContactModalIsOpen(true);
+  }
+
 
   return (
     <div className="relative h-full">
@@ -92,33 +101,37 @@ function LeftSideBar() {
         </div>
       </div>
       {/* <Tabs /> */}
-      <div className="grow overflow-hidden">
-      <Tabs />
-    </div>
-      {activeTabId !== "chatroom" && (
-        <BaseButton
-          className="btn__action absolute right-5 bottom-5 flex items-center justify-center shadow"
-          paddingX="0"
-          paddingY="0"
-          variant="main"
-          rounded="rounded-full"
-          emitOnClick={() => {
-            if (activeTabId === "conversations") {
-              dispatch(pushTab("contacts"));
-            } else if (activeTabId === "contacts") {
-              setCreateContactModalIsOpen(true);
-            }
-          }}
-        >
-          {activeTabId === "conversations" ? (
-            <svg className="size-5">
-              <use href="/img/icons.svg#user-add"></use>
-            </svg>
-          ) : (
-            <span className="text-3xl">+</span>
-          )}
-        </BaseButton>
-      )}
+      <div className="grow overflow-hidden h-full">
+         <CreateContactContext.Provider value={openCreateContact}>
+          <Tabs />
+        </CreateContactContext.Provider>
+      </div>
+      {activeTabId !== "chatroom" &&
+        ((activeTabId === "conversations" && conversations.length != 0) ||
+          (activeTabId === "contacts" && contacts.length != 0)) && (
+          <BaseButton
+            className="btn__action absolute right-5 bottom-5 flex items-center justify-center shadow"
+            paddingX="0"
+            paddingY="0"
+            variant="main"
+            rounded="rounded-full"
+            emitOnClick={() => {
+              if (activeTabId === "conversations") {
+                dispatch(pushTab("contacts"));
+              } else if (activeTabId === "contacts") {
+                setCreateContactModalIsOpen(true);
+              }
+            }}
+          >
+            {activeTabId === "conversations" ? (
+              <svg className="size-5">
+                <use href="/img/icons.svg#user-add"></use>
+              </svg>
+            ) : (
+              <span className="text-3xl">+</span>
+            )}
+          </BaseButton>
+        )}
 
       <BaseModal
         isOpen={createContactModalIsOpen}
@@ -134,4 +147,4 @@ function LeftSideBar() {
   );
 }
 
-export default LeftSideBar;
+export default MainSideBar;

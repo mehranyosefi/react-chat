@@ -28,10 +28,7 @@ const rootReducer = (
   action: UnknownAction
 ) => {
   if (logout.match(action)) {
-    console.log("BEFORE RESET:", state);
     state = undefined;
-
-    console.log("AFTER RESET:", state);
   }
 
   return appReducer(state, action);
