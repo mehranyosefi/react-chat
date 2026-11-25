@@ -54,3 +54,31 @@
   --color-yellow-800: #744210;
   --color-yellow-900: #5f370e;
 }
+
+:root {
+  color-scheme: dark;
+
+  --background: #17212b;
+  --surface: #212d3b;
+  --surface-secondary: #263442;
+  --primary: #3390ec;
+  --text: #f5f7fa;
+  --muted: #a0acb8;
+  --border: #344454;
+  --message-outgoing: #2b5278;
+  --message-incoming: #263442;
+  --input: #263442;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-primary: var(--primary);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-message-outgoing: var(--message-outgoing);
+  --color-message-incoming: var(--message-incoming);
+  --color-input: var(--input);
+}
