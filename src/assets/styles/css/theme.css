@@ -55,7 +55,24 @@
   --color-yellow-900: #5f370e;
 }
 
+/* Light Theme - Default */
 :root {
+  color-scheme: light;
+
+  --background: #f4f7fa;
+  --surface: #ffffff;
+  --surface-secondary: #f1f5f9;
+  --primary: #3390ec;
+  --text: #17212b;
+  --muted: #708499;
+  --border: #dce4ec;
+  --message-outgoing: #d9fdd3;
+  --message-incoming: #ffffff;
+  --input: #ffffff;
+}
+
+/* Dark Theme */
+.dark {
   color-scheme: dark;
 
   --background: #17212b;

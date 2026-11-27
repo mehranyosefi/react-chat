@@ -1,17 +1,43 @@
+import { useState } from "react";
 function Test() {
+  const [isDark, setIsDark] = useState(false);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-background p-4 text-text">
+    <div
+      className={`${isDark ? "dark" : ""} fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-background p-4 text-text`}
+    >
       <div className="flex h-full max-h-[800px] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-xl">
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border bg-surface-secondary px-5 py-4">
           <div>
             <h1 className="text-lg font-semibold">Messenger</h1>
-            <p className="text-sm text-muted">Dark Theme Preview</p>
+            <p className="text-sm text-muted">
+              {isDark ? "Dark Theme Preview" : "Light Theme Preview"}
+            </p>
           </div>
 
-          <span className="rounded-full bg-primary/15 px-3 py-1 text-sm font-medium text-primary">
-            Online
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-text">{isDark ? "Dark" : "Light"}</span>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isDark}
+              onClick={() => setIsDark((current) => !current)}
+              className={`relative h-6 w-11 rounded-full transition-colors ${
+                isDark ? "bg-primary" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`absolute top-1 size-4 rounded-full bg-white transition-transform ${
+                  isDark ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+
+            <span className="rounded-full bg-primary/15 px-3 py-1 text-sm font-medium text-primary">
+              Online
+            </span>
+          </div>
         </header>
 
         {/* Chat area */}
